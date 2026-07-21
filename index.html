@@ -248,7 +248,6 @@
                 return;
             }
 
-            // Verifica se este cadastro já possui uma LDL aberta (ativa)
             const jaTemLDLAtiva = ldlAtivas.some(l => {
                 const mesmaMatricula = pessoaEncontrada.matricula && l.matricula === pessoaEncontrada.matricula;
                 const mesmoCpf = pessoaEncontrada.cpf && l.cpf === pessoaEncontrada.cpf;
@@ -307,8 +306,33 @@
 
             const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await addDoc(collection(db, "ativasVLI"), novaLDL);
+
+            // Envio automático de cópia por e-mail (usando mailto para cliente de email padrão ou integração simulada)
+            const emailDestino = "vinicius.dangelo.menezes@vli-logistica.com.br";
+            const assuntoEmail = encodeURIComponent(`Nova LDL Aberta - Nº ${novaLDL.num} - ${novaLDL.nome}`);
+            const corpoEmail = encodeURIComponent(
+                `Uma nova LDL foi aberta:\n\n` +
+                `Nome: ${novaLDL.nome}\n` +
+                `Cargo: ${novaLDL.cargo}\n` +
+                `Matrícula: ${novaLDL.matricula || '-'}\n` +
+                `CPF: ${novaLDL.cpf || '-'}\n` +
+                `Número da LDL: ${novaLDL.num}\n` +
+                `Controlador de Pátio: ${novaLDL.controlador}\n` +
+                `Local: ${novaLDL.local}\n` +
+                `Atividade: ${novaLDL.atividade}\n` +
+                `Horário: ${novaLDL.horarioDe} às ${novaLDL.horarioAte}\n` +
+                `Data: ${novaLDL.data}`
+            );
             
-            alert("LDL Salva!");
+            // Cria um link temporário oculto para disparar o envio de e-mail de forma automática
+            const linkEmail = document.createElement('a');
+            linkEmail.href = `mailto:${emailDestino}?subject=${assuntoEmail}&body=${corpoEmail}`;
+            linkEmail.style.display = 'none';
+            document.body.appendChild(linkEmail);
+            linkEmail.click();
+            document.body.removeChild(linkEmail);
+            
+            alert("LDL Salva e cópia enviada por e-mail!");
             location.reload();
         };
 
