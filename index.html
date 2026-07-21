@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLI LDL - Aplicação</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        h1 { color: #004a99; text-align: center; }
+        .form-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
+        button { width: 100%; padding: 12px; background: #004a99; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
+        .error-text { color: #dc3545; font-weight: bold; padding: 10px; border: 1px solid #dc3545; border-radius: 5px; background: #f8d7da; margin-bottom: 10px; }
+        .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; }
+        
+        .hidden { display: none !important; }
+        #btnVerificar, #btnHistorico, #btnEditarCadastro { display: none; }
+        #secaoPreenchimento, #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>VLI LDL</h1>
+        
+        <div id="secaoAtivas">
+            <h3>LDLs Abertas</h3>
+            <div id="listaAtivas"></div>
+        </div>
+        
+        <div id="areaConsulta">
+            <div class="form-group">
+                <input type="text" id="buscaInput" placeholder="Matrícula ou CPF">
+                <button onclick="realizarBusca()">Consultar</button>
+            </div>
+            
+            <div id="mensagemConsulta"></div>
+            
+            <div class="form-group" style="border-top: 1px solid #eee; padding-top: 15px;">
+                <input type="date" id="dataBusca">
+                <button onclick="buscarLDLPorData()" style="background-color: #28a745;">Buscar LDL</button>
+            </div>
+
+            <div id="resultado"></div>
+            <button id="btnEditarCadastro" onclick="abrirEdicaoCadastro()" style="background-color: #ffc107; color: #000;">Editar Cadastro</button>
+            <button id="btnVerificar" onclick="abrirLDL()">Verificar abertura de LDL</button>
+            <button id="btnHistorico" onclick="mostrarHistorico()" style="background-color: #6c757d;">Histórico de LDL</button>
+            <button id="btnVoltar" onclick="voltarParaCadastro()" style="background-color: #666; display: none;">Voltar ao Cadastro</button>
+        </div>
+        
+        <div id="mensagem"></div>
+        
+        <div id="secaoEdicaoCadastro">
+            <h3>Editar Cadastro</h3>
+            <div id="mensagemEdicao"></div>
+            <input type="text" id="editNome" placeholder="Nome Completo">
+            <input type="text" id="editCargo" placeholder="Cargo/Função">
+            <input type="text" id="editMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
+            <input type="text" id="editCpf" placeholder="CPF">
+            <button onclick="salvarEdicaoCadastro()" style="background-color: #28a745;">Salvar Alterações</button>
+        </div>
+
+        <div id="secaoAutorizacao">
+            <h3>Autorização Especial</h3>
+            <input type="text" id="nomeAutorizacao" placeholder="Nome">
+            <input type="password" id="senhaAutorizacao" placeholder="Senha">
+            <div id="mensagemAutorizacao"></div>
+            <button onclick="autorizarAbertura()" style="background-color: #dc3545;">Autorizar Abertura</button>
+        </div>
+
+        <div id="secaoPreenchimento">
+            <h3>LDL</h3>
+            <div id="mensagemPreenchimento"></div>
+            <input type="text" id="inputNumLDL" placeholder="Nº LDL">
+            <input type="text" id="inputLocal" placeholder="Local">
+            <input type="text" id="inputAtividade" placeholder="Atividade">
+            <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
+                <input type="time" id="inputHorarioDe" placeholder="Das" style="margin-bottom:0;">
+                <span style="font-weight: bold; color: #555;">Até</span>
+                <input type="time" id="inputHorarioAte" placeholder="Até" style="margin-bottom:0;">
+            </div>
+            <input type="date" id="dataAtualLDL" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+            <button onclick="salvarLDL()" style="background-color: #28a745;">Salvar</button>
+        </div>
+
+        <div id="secaoHistorico">
+            <h3>Histórico de LDL</h3>
+            <div id="listaHistorico"></div>
+        </div>
+
+        <hr id="linhaDivisoria">
+
+        <div id="areaCadastro">
+            <h2>Cadastro</h2>
+            <div id="mensagemCadastro"></div>
+            <input type="text" id="novoNome" placeholder="Nome Completo">
+            <input type="text" id="novoCargo" placeholder="Cargo/Função">
+            <input type="text" id="novaMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
+            <input type="text" id="novoCpf" placeholder="CPF">
+            <input type="date" id="novaDataCadastro" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+            <button onclick="cadastrar()" style="background-color: #28a745;">Cadastrar</button>
+        </div>
+    </div>
+
+    <!-- Scripts do Firebase (SDK Modular) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // CREDENCIAIS DO SEU PROJETO FIREBASE INSERIDAS:
+        const firebaseConfig = {
+            apiKey: "AIzaSyCRrXnA-sZh3x-1wcE4U1Njf_oEvsHqUjA",
+            authDomain: "ldl-tiplam-9f5fc.firebaseapp.com",
+            projectId: "ldl-tiplam-9f5fc",
+            storageBucket: "ldl-tiplam-9f5fc.firebasestorage.app",
+            messagingSenderId: "491461976085",
+            appId: "1:491461976085:web:878b4e1893372991dbee1c"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        let bancoDeDados = [];
+        let ldlAtivas = [];
+        let pessoaEncontrada = null;
+
+        function obterDataLocalISO() {
+            const agora = new Date();
+            const ano = agora.getFullYear();
+            const mes = String(agora.getMonth() + 1).padStart(2, '0');
+            const dia = String(agora.getDate()).padStart(2, '0');
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        const dataHojeStr = obterDataLocalISO();
+        document.getElementById('novaDataCadastro').value = dataHojeStr;
+        document.getElementById('dataAtualLDL').value = dataHojeStr;
+
+        // Sincronização em Tempo Real com o Firestore
+        onSnapshot(collection(db, "bancoVLI"), async (snapshot) => {
+            bancoDeDados = [];
+            snapshot.forEach((docSnap) => {
+                bancoDeDados.push({ id: docSnap.id, ...docSnap.data() });
+            });
+
+            // Se o banco estiver vazio na nuvem, insere os dados iniciais padrão
+            if (bancoDeDados.length === 0) {
+                const iniciais = [
+                    { nome: "Bruna", cargo: "Maquinista", matricula: "30102525", cpf: "", ultimaLDL: "2026-01-05", historico: [] },
+                    { nome: "Rafael", cargo: "Maquinista", matricula: "30104021", cpf: "", ultimaLDL: "2026-03-07", historico: [] },
+                    { nome: "TESTE", cargo: "TESTE", matricula: "30100101", cpf: "", ultimaLDL: "2025-10-01", historico: [] },
+                    { nome: "TESTE", cargo: "TESTE", matricula: "30100102", cpf: "", ultimaLDL: "2025-10-01", historico: [] }
+                ];
+                for (let i = 0; i < iniciais.length; i++) {
+                    await setDoc(doc(db, "bancoVLI", "pessoa_" + iniciais[i].matricula), iniciais[i]);
+                }
+            } else if (pessoaEncontrada) {
+                // Atualiza a referência da pessoa caso esteja aberta na tela e mude na nuvem
+                pessoaEncontrada = bancoDeDados.find(p => p.id === pessoaEncontrada.id);
+                if (document.getElementById('resultado').innerHTML !== "" && pessoaEncontrada) {
+                    atualizarTelaResultado();
+                }
+            }
+        });
+
+        onSnapshot(collection(db, "ativasVLI"), (snapshot) => {
+            ldlAtivas = [];
+            snapshot.forEach((docSnap) => {
+                ldlAtivas.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            renderizarAtivas();
+        });
+
+        window.renderizarAtivas = function() {
+            const container = document.getElementById('listaAtivas');
+            if(ldlAtivas.length > 0) {
+                document.getElementById('secaoAtivas').style.display = "block";
+                container.innerHTML = ldlAtivas.map((l) => `
+                    <div class="card-ldl">
+                        <strong>${l.nome}</strong> - Nº ${l.num}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                        <button onclick="encerrarLDL('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
+                    </div>
+                `).join('');
+            } else {
+                document.getElementById('secaoAtivas').style.display = "none";
+            }
+        };
+
+        window.encerrarLDL = async function(id) {
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await deleteDoc(doc(db, "ativasVLI", id));
+        };
+
+        window.salvarLDL = async function() {
+            const numVal = document.getElementById('inputNumLDL').value.trim();
+            const dataVal = obterDataLocalISO();
+            document.getElementById('dataAtualLDL').value = dataVal;
+            const msgErro = document.getElementById('mensagemPreenchimento');
+
+            let numeroDuplicado = false;
+            
+            if (ldlAtivas.some(l => l.num === numVal && l.data === dataVal)) {
+                numeroDuplicado = true;
+            }
+
+            if (!numeroDuplicado) {
+                bancoDeDados.forEach(p => {
+                    if (p.historico) {
+                        if (p.historico.some(h => h.num === numVal && h.data === dataVal)) {
+                            numeroDuplicado = true;
+                        }
+                    }
+                });
+            }
+
+            if (numeroDuplicado) {
+                msgErro.innerHTML = `<div class="error-text">Erro: Já existe uma LDL de número ${numVal} cadastrada nesta mesma data!</div>`;
+                return;
+            }
+
+            msgErro.innerHTML = "";
+
+            const novaLDL = { 
+                nome: pessoaEncontrada.nome,
+                cargo: pessoaEncontrada.cargo,
+                matricula: pessoaEncontrada.matricula,
+                cpf: pessoaEncontrada.cpf,
+                num: numVal, 
+                local: document.getElementById('inputLocal').value,
+                atividade: document.getElementById('inputAtividade').value,
+                horarioDe: document.getElementById('inputHorarioDe').value,
+                horarioAte: document.getElementById('inputHorarioAte').value,
+                data: dataVal 
+            };
+            
+            const novoHistoricoItem = { tipo: "Preenchimento", ...novaLDL };
+            
+            const docRef = doc(db, "bancoVLI", pessoaEncontrada.id);
+            await updateDoc(docRef, {
+                historico: arrayUnion(novoHistoricoItem),
+                ultimaLDL: novaLDL.data
+            });
+
+            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
+            await addDoc(collection(db, "ativasVLI"), novaLDL);
+            
+            alert("LDL Salva!");
+            location.reload();
+        };
+
+        window.buscarLDLPorData = function() {
+            const dataEscolhida = document.getElementById('dataBusca').value;
+            if(!dataEscolhida) { alert("Selecione uma data"); return; }
+            
+            let resultadosEncontrados = [];
+            bancoDeDados.forEach(pessoa => {
+                const ldlData = (pessoa.historico || []).filter(h => h.data === dataEscolhida);
+                if(ldlData.length > 0) {
+                    ldlData.forEach(l => {
+                        resultadosEncontrados.push({
+                            nome: pessoa.nome,
+                            cargo: pessoa.cargo,
+                            matricula: pessoa.matricula,
+                            cpf: pessoa.cpf,
+                            ...l
+                        });
+                    });
+                }
+            });
+
+            const telaResultado = document.getElementById('resultado');
+            if(resultadosEncontrados.length > 0) {
+                telaResultado.innerHTML = "<h3>LDL encontradas em " + dataEscolhida + ":</h3>" + 
+                resultadosEncontrados.map(item => `
+                    <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #fff;">
+                        <strong>Nome:</strong> ${item.nome || '-'}<br>
+                        <strong>Cargo/Função:</strong> ${item.cargo || '-'}<br>
+                        ${item.matricula ? `<strong>Matrícula:</strong> ${item.matricula}<br>` : ''}
+                        ${item.cpf ? `<strong>CPF:</strong> ${item.cpf}<br>` : ''}
+                        <strong>Tipo:</strong> ${item.tipo || 'Preenchimento'}<br>
+                        ${item.num ? `<strong>Número da LDL:</strong> ${item.num}<br>` : ''}
+                        ${item.local ? `<strong>Local:</strong> ${item.local}<br>` : ''}
+                        ${item.atividade ? `<strong>Atividade:</strong> ${item.atividade}<br>` : ''}
+                        ${item.horarioDe ? `<strong>Horário:</strong> ${item.horarioDe} às ${item.horarioAte || ''}<br>` : ''}
+                        <strong>Data:</strong> ${item.data || '-'}<br>
+                        ${item.resp ? `<strong>Responsável Autorização:</strong> ${item.resp}<br>` : ''}
+                    </div>
+                `).join('');
+            } else {
+                telaResultado.innerHTML = "Nenhuma LDL encontrada nesta data.";
+            }
+        };
+
+        window.realizarBusca = function() {
+            const termo = document.getElementById('buscaInput').value.trim();
+            const msgConsulta = document.getElementById('mensagemConsulta');
+
+            if(!termo) {
+                msgConsulta.innerHTML = `<div class="error-text">Erro: Digite a Matrícula ou o CPF para consultar!</div>`;
+                document.getElementById('resultado').innerHTML = "";
+                document.getElementById('btnVerificar').style.display = "none";
+                document.getElementById('btnHistorico').style.display = "none";
+                document.getElementById('btnEditarCadastro').style.display = "none";
+                document.getElementById('secaoHistorico').style.display = "none";
+                document.getElementById('secaoEdicaoCadastro').style.display = "none";
+                document.getElementById('mensagem').innerHTML = "";
+                document.getElementById('secaoAutorizacao').style.display = "none";
+                return;
+            }
+
+            msgConsulta.innerHTML = "";
+            document.getElementById('areaCadastro').classList.add('hidden');
+            document.getElementById('linhaDivisoria').classList.add('hidden');
+            document.getElementById('btnVoltar').style.display = "block";
+            buscarPessoa();
+        };
+
+        window.voltarParaCadastro = function() {
+            document.getElementById('areaCadastro').classList.remove('hidden');
+            document.getElementById('linhaDivisoria').classList.remove('hidden');
+            document.getElementById('btnVoltar').style.display = "none";
+            document.getElementById('resultado').innerHTML = "";
+            document.getElementById('btnVerificar').style.display = "none";
+            document.getElementById('btnHistorico').style.display = "none";
+            document.getElementById('btnEditarCadastro').style.display = "none";
+            document.getElementById('secaoHistorico').style.display = "none";
+            document.getElementById('secaoEdicaoCadastro').style.display = "none";
+            document.getElementById('mensagem').innerHTML = "";
+            document.getElementById('mensagemConsulta').innerHTML = "";
+            document.getElementById('secaoAutorizacao').style.display = "none";
+            document.getElementById('buscaInput').value = "";
+        };
+
+        function atualizarTelaResultado() {
+            let html = `<strong>Nome:</strong> ${pessoaEncontrada.nome}<br><strong>Cargo:</strong> ${pessoaEncontrada.cargo}<br><strong>Última LDL:</strong> ${pessoaEncontrada.ultimaLDL}`;
+            if(pessoaEncontrada.ultimaAutorizacao) {
+                html += `<br><strong>Última Autorização por:</strong> ${pessoaEncontrada.ultimaAutorizacao.resp} em ${pessoaEncontrada.ultimaAutorizacao.data}`;
+            }
+            document.getElementById('resultado').innerHTML = html;
+            document.getElementById('btnEditarCadastro').style.display = "block";
+            document.getElementById('btnVerificar').style.display = "block";
+            document.getElementById('btnHistorico').style.display = "block";
+            document.getElementById('mensagem').innerHTML = "";
+        }
+
+        window.buscarPessoa = function() {
+            const termo = document.getElementById('buscaInput').value.trim();
+            pessoaEncontrada = bancoDeDados.find(p => p.matricula === termo || p.cpf === termo);
+            if(pessoaEncontrada) {
+                atualizarTelaResultado();
+            } else {
+                document.getElementById('resultado').innerHTML = "Pessoa não encontrada.";
+                document.getElementById('btnEditarCadastro').style.display = "none";
+                document.getElementById('btnVerificar').style.display = "none";
+                document.getElementById('btnHistorico').style.display = "none";
+                document.getElementById('mensagem').innerHTML = "";
+            }
+        };
+
+        window.abrirEdicaoCadastro = function() {
+            document.getElementById('secaoEdicaoCadastro').style.display = "block";
+            document.getElementById('editNome').value = pessoaEncontrada.nome || '';
+            document.getElementById('editCargo').value = pessoaEncontrada.cargo || '';
+            document.getElementById('editMatricula').value = pessoaEncontrada.matricula || '';
+            document.getElementById('editCpf').value = pessoaEncontrada.cpf || '';
+            document.getElementById('mensagemEdicao').innerHTML = "";
+        };
+
+        window.salvarEdicaoCadastro = async function() {
+            const nome = document.getElementById('editNome').value.trim();
+            const cargo = document.getElementById('editCargo').value.trim();
+            const matricula = document.getElementById('editMatricula').value.trim();
+            const cpf = document.getElementById('editCpf').value.trim();
+            const msgErro = document.getElementById('mensagemEdicao');
+
+            if (!nome || !cargo || (!matricula && !cpf)) {
+                msgErro.innerHTML = `<div class="error-text">Erro na edição: Preencha o Nome, a Função e ao menos um dos campos (Matrícula ou CPF).</div>`;
+                return;
+            }
+
+            if (cpf !== "" && (!/^\d+$/.test(cpf) || cpf.length !== 11)) {
+                msgErro.innerHTML = `<div class="error-text">Erro na edição: O CPF deve conter exatamente 11 números.</div>`;
+                return;
+            }
+
+            if (matricula !== "" && (!/^\d+$/.test(matricula) || matricula.length < 6 || matricula.length > 8)) {
+                msgErro.innerHTML = `<div class="error-text">Erro na edição: A Matrícula deve ter no mínimo 6 e no máximo 8 números.</div>`;
+                return;
+            }
+
+            const docRef = doc(db, "bancoVLI", pessoaEncontrada.id);
+            await updateDoc(docRef, {
+                nome: nome,
+                cargo: cargo,
+                matricula: matricula,
+                cpf: cpf
+            });
+
+            alert("Cadastro atualizado com sucesso!");
+            document.getElementById('secaoEdicaoCadastro').style.display = "none";
+        };
+
+        window.abrirLDL = function() {
+            const diff = (new Date() - new Date(pessoaEncontrada.ultimaLDL)) / (1000*60*60*24);
+            if(diff > 90) {
+                document.getElementById('mensagem').innerHTML = `
+                    <div class="error-text">Sem abrir LDL há mais de 90 dias, consulte a Inspetoria.</div>
+                    <button onclick="document.getElementById('secaoAutorizacao').style.display='block'" style="background-color: #dc3545;">Autorizar abertura de LDL</button>
+                `;
+            } else {
+                document.getElementById('secaoPreenchimento').style.display = "block";
+                document.getElementById('dataAtualLDL').value = obterDataLocalISO();
+                document.getElementById('mensagem').innerHTML = "";
+            }
+        };
+
+        window.autorizarAbertura = async function() {
+            const nomeDigitado = document.getElementById('nomeAutorizacao').value.trim();
+            const senhaDigitada = document.getElementById('senhaAutorizacao').value;
+            const msgAuth = document.getElementById('mensagemAutorizacao');
+            
+            if(!nomeDigitado) {
+                msgAuth.innerHTML = `<div class="error-text">Erro: Informe o Nome.</div>`;
+                return;
+            }
+
+            if(senhaDigitada !== "2030") {
+                msgAuth.innerHTML = `<div class="error-text">Senha incorreta! Digite a senha correta.</div>`;
+                return;
+            }
+
+            msgAuth.innerHTML = "";
+            const dataHoje = obterDataLocalISO();
+            const auth = { resp: nomeDigitado, data: dataHoje };
+            const novoHistoricoItem = { tipo: "Autorização", ...auth };
+
+            const docRef = doc(db, "bancoVLI", pessoaEncontrada.id);
+            await updateDoc(docRef, {
+                ultimaAutorizacao: auth,
+                ultimaLDL: dataHoje,
+                historico: arrayUnion(novoHistoricoItem)
+            });
+
+            alert("Autorização concedida com sucesso!");
+            document.getElementById('secaoAutorizacao').style.display = "none";
+            document.getElementById('secaoPreenchimento').style.display = "block";
+            document.getElementById('dataAtualLDL').value = obterDataLocalISO();
+            document.getElementById('mensagem').innerHTML = "";
+        };
+
+        window.mostrarHistorico = function() {
+            const secao = document.getElementById('secaoHistorico');
+            secao.style.display = "block";
+            const lista = document.getElementById('listaHistorico');
+            lista.innerHTML = (pessoaEncontrada.historico || []).map(h => `
+                <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px;">
+                    <strong>Data:</strong> ${h.data}<br>
+                    <strong>Tipo:</strong> ${h.tipo}<br>
+                    ${h.num ? `<strong>Nº LDL:</strong> ${h.num}<br>` : ''}
+                    ${h.local ? `<strong>Local:</strong> ${h.local}<br>` : ''}
+                    ${h.atividade ? `<strong>Atividade:</strong> ${h.atividade}<br>` : ''}
+                    ${h.horarioDe ? `<strong>Horário:</strong> ${h.horarioDe} às ${h.horarioAte || ''}<br>` : ''}
+                    ${h.resp ? `<strong>Responsável:</strong> ${h.resp}<br>` : ''}
+                </div>
+            `).join('');
+        };
+
+        window.cadastrar = async function() {
+            const nome = document.getElementById('novoNome').value.trim();
+            const cargo = document.getElementById('novoCargo').value.trim();
+            const matricula = document.getElementById('novaMatricula').value.trim();
+            const cpf = document.getElementById('novoCpf').value.trim();
+            const dataCadastro = obterDataLocalISO();
+            document.getElementById('novaDataCadastro').value = dataCadastro;
+            const msgErro = document.getElementById('mensagemCadastro');
+
+            if (!nome || !cargo || (!matricula && !cpf)) {
+                msgErro.innerHTML = `<div class="error-text">Erro no cadastro: Preencha o Nome, a Função e ao menos um dos campos (Matrícula ou CPF).</div>`;
+                return;
+            }
+
+            if (cpf !== "" && (!/^\d+$/.test(cpf) || cpf.length !== 11)) {
+                msgErro.innerHTML = `<div class="error-text">Erro no cadastro: O CPF deve conter exatamente 11 números.</div>`;
+                return;
+            }
+
+            if (matricula !== "" && (!/^\d+$/.test(matricula) || matricula.length < 6 || matricula.length > 8)) {
+                msgErro.innerHTML = `<div class="error-text">Erro no cadastro: A Matrícula deve ter no mínimo 6 e no máximo 8 números.</div>`;
+                return;
+            }
+
+            msgErro.innerHTML = "";
+
+            const novoRegistro = { 
+                nome: nome, 
+                cargo: cargo, 
+                matricula: matricula, 
+                cpf: cpf, 
+                ultimaLDL: dataCadastro,
+                historico: [] 
+            };
+
+            const idDoc = matricula ? "matricula_" + matricula : "cpf_" + cpf;
+            await setDoc(doc(db, "bancoVLI", idDoc), novoRegistro);
+
+            alert("Cadastrado!");
+            location.reload();
+        };
+    </script>
+</body>
+</html>
