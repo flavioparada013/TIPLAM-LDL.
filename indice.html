@@ -15,9 +15,9 @@
         .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; }
         
         .hidden { display: none !important; }
-        #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
+        #btnVerificar, #btnHistorico, #btnEditarCadastro { display: none; }
         #secaoPreenchimento { display: none !important; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
-        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -44,26 +44,12 @@
 
             <div id="resultado"></div>
             <button id="btnEditarCadastro" onclick="abrirEdicaoCadastro()" style="background-color: #ffc107; color: #000;">Editar Cadastro</button>
-            <button id="btnBloquearCadastro" onclick="controlarBotaoBloqueio()"></button>
             <button id="btnVerificar" onclick="abrirLDL()">Verificar abertura de LDL</button>
             <button id="btnHistorico" onclick="mostrarHistorico()" style="background-color: #6c757d;">Histórico de LDL</button>
             <button id="btnVoltar" onclick="voltarParaCadastro()" style="background-color: #666; display: none;">Voltar ao Cadastro</button>
         </div>
         
         <div id="mensagem"></div>
-        
-        <div id="secaoConfirmarBloqueio">
-            <h3>Confirmação de Bloqueio</h3>
-            <p style="font-weight: bold; color: #dc3545;">Tem certeza que deseja Bloquear esse cadastro?</p>
-            <button onclick="executarBloqueio()" style="background-color: #dc3545;">Confirmar Bloqueio</button>
-        </div>
-
-        <div id="secaoDesbloqueio">
-            <h3>Desbloquear Cadastro</h3>
-            <input type="password" id="senhaDesbloqueio" placeholder="Senha">
-            <div id="mensagemDesbloqueio"></div>
-            <button onclick="executarDesbloqueio()" style="background-color: #28a745;">Desbloquear</button>
-        </div>
         
         <div id="secaoEdicaoCadastro">
             <h3>Editar Cadastro</h3>
@@ -160,10 +146,10 @@
             // Se o banco estiver vazio na nuvem, insere os dados iniciais padrão
             if (bancoDeDados.length === 0) {
                 const iniciais = [
-                    { nome: "Bruna", cargo: "Maquinista", matricula: "30102525", cpf: "", ultimaLDL: "2026-01-05", historico: [], bloqueado: false },
-                    { nome: "Rafael", cargo: "Maquinista", matricula: "30104021", cpf: "", ultimaLDL: "2026-03-07", historico: [], bloqueado: false },
-                    { nome: "TESTE", cargo: "TESTE", matricula: "30100101", cpf: "", ultimaLDL: "2025-10-01", historico: [], bloqueado: false },
-                    { nome: "TESTE", cargo: "TESTE", matricula: "30100102", cpf: "", ultimaLDL: "2025-10-01", historico: [], bloqueado: false }
+                    { nome: "Bruna", cargo: "Maquinista", matricula: "30102525", cpf: "", ultimaLDL: "2026-01-05", historico: [] },
+                    { nome: "Rafael", cargo: "Maquinista", matricula: "30104021", cpf: "", ultimaLDL: "2026-03-07", historico: [] },
+                    { nome: "TESTE", cargo: "TESTE", matricula: "30100101", cpf: "", ultimaLDL: "2025-10-01", historico: [] },
+                    { nome: "TESTE", cargo: "TESTE", matricula: "30100102", cpf: "", ultimaLDL: "2025-10-01", historico: [] }
                 ];
                 for (let i = 0; i < iniciais.length; i++) {
                     await setDoc(doc(db, "bancoVLI", "pessoa_" + iniciais[i].matricula), iniciais[i]);
@@ -314,11 +300,8 @@
                 document.getElementById('btnVerificar').style.display = "none";
                 document.getElementById('btnHistorico').style.display = "none";
                 document.getElementById('btnEditarCadastro').style.display = "none";
-                document.getElementById('btnBloquearCadastro').style.display = "none";
                 document.getElementById('secaoHistorico').style.display = "none";
                 document.getElementById('secaoEdicaoCadastro').style.display = "none";
-                document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-                document.getElementById('secaoDesbloqueio').style.display = "none";
                 document.getElementById('mensagem').innerHTML = "";
                 document.getElementById('secaoAutorizacao').style.display = "none";
                 document.getElementById('secaoPreenchimento').style.display = "none";
@@ -340,11 +323,8 @@
             document.getElementById('btnVerificar').style.display = "none";
             document.getElementById('btnHistorico').style.display = "none";
             document.getElementById('btnEditarCadastro').style.display = "none";
-            document.getElementById('btnBloquearCadastro').style.display = "none";
             document.getElementById('secaoHistorico').style.display = "none";
             document.getElementById('secaoEdicaoCadastro').style.display = "none";
-            document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-            document.getElementById('secaoDesbloqueio').style.display = "none";
             document.getElementById('secaoAutorizacao').style.display = "none";
             document.getElementById('secaoPreenchimento').style.display = "none";
             document.getElementById('mensagem').innerHTML = "";
@@ -357,33 +337,13 @@
             if(pessoaEncontrada.ultimaAutorizacao) {
                 html += `<br><strong>Última Autorização por:</strong> ${pessoaEncontrada.ultimaAutorizacao.resp} em ${pessoaEncontrada.ultimaAutorizacao.data}`;
             }
-
-            if (pessoaEncontrada.bloqueado) {
-                html += `<br><span style="color: #dc3545; font-weight: bold;">CADASTRO BLOQUEADO</span>`;
-                document.getElementById('resultado').innerHTML = html;
-                document.getElementById('btnEditarCadastro').style.display = "block";
-                document.getElementById('btnBloquearCadastro').style.display = "block";
-                document.getElementById('btnBloquearCadastro').innerText = "Desbloquear Cadastro";
-                document.getElementById('btnBloquearCadastro').style.backgroundColor = "#28a745";
-                document.getElementById('btnVerificar').style.display = "none";
-                document.getElementById('btnHistorico').style.display = "none";
-                document.getElementById('secaoPreenchimento').style.display = "none";
-                document.getElementById('mensagem').innerHTML = `<div class="error-text">Este cadastro está bloqueado.</div>`;
-                return;
-            }
-
             document.getElementById('resultado').innerHTML = html;
             document.getElementById('btnEditarCadastro').style.display = "block";
-            document.getElementById('btnBloquearCadastro').style.display = "block";
-            document.getElementById('btnBloquearCadastro').innerText = "Bloquear Cadastro";
-            document.getElementById('btnBloquearCadastro').style.backgroundColor = "#dc3545";
             document.getElementById('btnVerificar').style.display = "block";
             document.getElementById('btnHistorico').style.display = "block";
             document.getElementById('mensagem').innerHTML = "";
             document.getElementById('secaoPreenchimento').style.display = "none";
             document.getElementById('secaoAutorizacao').style.display = "none";
-            document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-            document.getElementById('secaoDesbloqueio').style.display = "none";
         }
 
         window.buscarPessoa = function() {
@@ -394,14 +354,11 @@
             } else {
                 document.getElementById('resultado').innerHTML = "Pessoa não encontrada.";
                 document.getElementById('btnEditarCadastro').style.display = "none";
-                document.getElementById('btnBloquearCadastro').style.display = "none";
                 document.getElementById('btnVerificar').style.display = "none";
                 document.getElementById('btnHistorico').style.display = "none";
                 document.getElementById('mensagem').innerHTML = "";
                 document.getElementById('secaoAutorizacao').style.display = "none";
                 document.getElementById('secaoPreenchimento').style.display = "none";
-                document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-                document.getElementById('secaoDesbloqueio').style.display = "none";
             }
         };
 
@@ -446,45 +403,6 @@
 
             alert("Cadastro atualizado com sucesso!");
             document.getElementById('secaoEdicaoCadastro').style.display = "none";
-        };
-
-        window.controlarBotaoBloqueio = function() {
-            if (pessoaEncontrada.bloqueado) {
-                document.getElementById('secaoDesbloqueio').style.display = "block";
-                document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-                document.getElementById('senhaDesbloqueio').value = "";
-                document.getElementById('mensagemDesbloqueio').innerHTML = "";
-            } else {
-                document.getElementById('secaoConfirmarBloqueio').style.display = "block";
-                document.getElementById('secaoDesbloqueio').style.display = "none";
-            }
-        };
-
-        window.executarBloqueio = async function() {
-            const docRef = doc(db, "bancoVLI", pessoaEncontrada.id);
-            await updateDoc(docRef, { bloqueado: true });
-            pessoaEncontrada.bloqueado = true;
-            document.getElementById('secaoConfirmarBloqueio').style.display = "none";
-            alert("Cadastro bloqueado com sucesso!");
-            atualizarTelaResultado();
-        };
-
-        window.executarDesbloqueio = async function() {
-            const senha = document.getElementById('senhaDesbloqueio').value;
-            const msgDesc = document.getElementById('mensagemDesbloqueio');
-
-            if (senha !== "2030") {
-                msgDesc.innerHTML = `<div class="error-text">Senha incorreta! Digite a senha correta.</div>`;
-                return;
-            }
-
-            msgDesc.innerHTML = "";
-            const docRef = doc(db, "bancoVLI", pessoaEncontrada.id);
-            await updateDoc(docRef, { bloqueado: false });
-            pessoaEncontrada.bloqueado = false;
-            document.getElementById('secaoDesbloqueio').style.display = "none";
-            alert("Cadastro desbloqueado com sucesso!");
-            atualizarTelaResultado();
         };
 
         window.abrirLDL = function() {
@@ -590,8 +508,7 @@
                 matricula: matricula, 
                 cpf: cpf, 
                 ultimaLDL: dataCadastro,
-                historico: [],
-                bloqueado: false 
+                historico: [] 
             };
 
             const idDoc = matricula ? "matricula_" + matricula : "cpf_" + cpf;
