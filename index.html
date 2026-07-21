@@ -6,7 +6,7 @@
     <title>VLI LDL - Aplicação</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         h1 { color: #004a99; text-align: center; }
         .form-group { margin-bottom: 15px; }
         input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
@@ -17,7 +17,7 @@
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
-        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -29,7 +29,34 @@
 </head>
 <body>
     <div class="container">
+        <!-- Botões no Topo -->
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+            <button id="topoBtnLogin" onclick="acaoTopoLogin()" style="width: auto; padding: 6px 12px; background-color: #6c757d; margin-top:0;">Login</button>
+            <button id="topoBtnCadastrarControlador" onclick="mostrarSecaoCadastrarControlador()" style="width: auto; padding: 6px 12px; background-color: #28a745; margin-top:0;">Cadastrar Controlador</button>
+        </div>
+
         <h1>VLI LDL</h1>
+
+        <!-- Seção de Cadastro de Controlador -->
+        <div id="secaoCadastrarControlador">
+            <h3>Cadastrar Controlador</h3>
+            <div id="mensagemCadastrarControlador"></div>
+            <input type="text" id="ctrlNomeCadastro" placeholder="Nome">
+            <input type="text" id="ctrlMatriculaCadastro" placeholder="Matrícula" maxlength="8">
+            <input type="password" id="ctrlSenhaCadastro" placeholder="Senha">
+            <button onclick="executarCadastroControlador()" style="background-color: #28a745;">Cadastrar</button>
+            <button onclick="voltarAoPainelControlador()" style="background-color: #666;">Voltar</button>
+        </div>
+
+        <!-- Seção de Login de Controlador -->
+        <div id="secaoLoginControlador">
+            <h3>Login Controlador</h3>
+            <div id="mensagemLoginControlador"></div>
+            <input type="text" id="ctrlMatriculaLogin" placeholder="Matrícula" maxlength="8">
+            <input type="password" id="ctrlSenhaLogin" placeholder="Senha">
+            <button onclick="executarLoginControlador()" style="background-color: #004a99;">Entrar</button>
+            <button onclick="voltarAoPainelControlador()" style="background-color: #666;">Voltar</button>
+        </div>
         
         <div id="secaoAtivas">
             <h3>LDLs Abertas</h3>
@@ -99,7 +126,7 @@
             <h3>LDL</h3>
             <div id="mensagemPreenchimento"></div>
             <input type="text" id="inputNumLDL" placeholder="Nº LDL" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
-            <input type="text" id="inputControlador" placeholder="Controlador de Pátio">
+            <input type="text" id="inputControlador" placeholder="Controlador de Pátio" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
             <input type="text" id="inputLocal" placeholder="Local">
             <input type="text" id="inputAtividade" placeholder="Atividade">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
@@ -147,8 +174,11 @@
         const db = getFirestore(app);
 
         let bancoDeDados = [];
+        let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
+        let controladorLogado = false;
+        let dadosControladorLogado = null;
 
         function obterDataLocalISO() {
             const agora = new Date();
@@ -161,6 +191,120 @@
         const dataHojeStr = obterDataLocalISO();
         document.getElementById('novaDataCadastro').value = dataHojeStr;
         document.getElementById('dataAtualLDL').value = dataHojeStr;
+
+        window.mostrarSecaoCadastrarControlador = function() {
+            document.getElementById('secaoCadastrarControlador').style.display = 'block';
+            document.getElementById('secaoLoginControlador').style.display = 'none';
+            document.getElementById('ctrlNomeCadastro').value = '';
+            document.getElementById('ctrlMatriculaCadastro').value = '';
+            document.getElementById('ctrlSenhaCadastro').value = '';
+            document.getElementById('mensagemCadastrarControlador').innerHTML = '';
+        };
+
+        window.acaoTopoLogin = function() {
+            if (controladorLogado) {
+                controladorLogado = false;
+                dadosControladorLogado = null;
+                atualizarBotaoLoginTopo();
+                alert("Você saiu do login com sucesso!");
+                voltarAoPainelControlador();
+                voltarParaCadastro();
+            } else {
+                mostrarSecaoLogin();
+            }
+        };
+
+        window.mostrarSecaoLogin = function() {
+            document.getElementById('secaoLoginControlador').style.display = 'block';
+            document.getElementById('secaoCadastrarControlador').style.display = 'none';
+            document.getElementById('ctrlMatriculaLogin').value = '';
+            document.getElementById('ctrlSenhaLogin').value = '';
+            document.getElementById('mensagemLoginControlador').innerHTML = '';
+        };
+
+        window.voltarAoPainelControlador = function() {
+            document.getElementById('secaoCadastrarControlador').style.display = 'none';
+            document.getElementById('secaoLoginControlador').style.display = 'none';
+        };
+
+        function atualizarBotaoLoginTopo() {
+            const btn = document.getElementById('topoBtnLogin');
+            if (controladorLogado) {
+                btn.innerText = "Sair";
+                btn.style.backgroundColor = "#dc3545";
+            } else {
+                btn.innerText = "Login";
+                btn.style.backgroundColor = "#6c757d";
+            }
+        }
+
+        window.executarCadastroControlador = async function() {
+            const nome = document.getElementById('ctrlNomeCadastro').value.trim();
+            const matricula = document.getElementById('ctrlMatriculaCadastro').value.trim();
+            const senha = document.getElementById('ctrlSenhaCadastro').value;
+            const msg = document.getElementById('mensagemCadastrarControlador');
+
+            if (!nome) {
+                msg.innerHTML = `<div class="error-text">Preencha o Nome do controlador.</div>`;
+                return;
+            }
+
+            if (!/^\d+$/.test(matricula) || matricula.length < 6 || matricula.length > 8) {
+                msg.innerHTML = `<div class="error-text">A Matrícula deve ter entre 6 e 8 dígitos numéricos.</div>`;
+                return;
+            }
+
+            if (senha !== "2030") {
+                msg.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
+                return;
+            }
+
+            const docRef = doc(db, "controladoresVLI", "ctrl_" + matricula);
+            await setDoc(docRef, { nome: nome, matricula: matricula, dataCadastro: obterDataLocalISO() });
+            
+            msg.innerHTML = "";
+            alert("Cadastro salvo com sucesso!");
+            document.getElementById('secaoCadastrarControlador').style.display = 'none';
+        };
+
+        window.executarLoginControlador = function() {
+            const matricula = document.getElementById('ctrlMatriculaLogin').value.trim();
+            const senha = document.getElementById('ctrlSenhaLogin').value;
+            const msg = document.getElementById('mensagemLoginControlador');
+
+            if (!/^\d+$/.test(matricula) || matricula.length < 6 || matricula.length > 8) {
+                msg.innerHTML = `<div class="error-text">A Matrícula deve ter entre 6 e 8 dígitos numéricos.</div>`;
+                return;
+            }
+
+            const ultimos4 = matricula.slice(-4);
+            const encontrado = controladoresCadastrados.find(c => c.matricula === matricula);
+
+            if (!encontrado) {
+                msg.innerHTML = `<div class="error-text">Controlador não encontrado com esta matrícula. Faça o cadastro primeiro.</div>`;
+                return;
+            }
+
+            if (senha !== ultimos4) {
+                msg.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
+                return;
+            }
+
+            msg.innerHTML = "";
+            controladorLogado = true;
+            dadosControladorLogado = encontrado;
+            atualizarBotaoLoginTopo();
+            alert("Login realizado com sucesso! Acesso total concedido.");
+            document.getElementById('secaoLoginControlador').style.display = 'none';
+            voltarParaCadastro();
+        };
+
+        onSnapshot(collection(db, "controladoresVLI"), (snapshot) => {
+            controladoresCadastrados = [];
+            snapshot.forEach((docSnap) => {
+                controladoresCadastrados.push({ id: docSnap.id, ...docSnap.data() });
+            });
+        });
 
         onSnapshot(collection(db, "bancoVLI"), async (snapshot) => {
             bancoDeDados = [];
@@ -201,6 +345,7 @@
                 container.innerHTML = ldlAtivas.map((l) => `
                     <div class="card-ldl">
                         <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                        ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
                         <button onclick="encerrarLDL('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
                     </div>
                 `).join('');
@@ -210,8 +355,30 @@
         };
 
         window.encerrarLDL = async function(id) {
+            if (!controladorLogado || !dadosControladorLogado) {
+                alert("Apenas controladores ativos poderão encerrar as LDLs. Faça o Login primeiro.");
+                return;
+            }
+
+            const infoEncerrante = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
+            
+            const ldlAlvo = ldlAtivas.find(l => l.id === id);
+            if (ldlAlvo) {
+                bancoDeDados.forEach(async p => {
+                    if (p.historico) {
+                        const index = p.historico.findIndex(h => h.num === ldlAlvo.num && h.data === ldlAlvo.data);
+                        if (index !== -1) {
+                            p.historico[index].encerradoPor = infoEncerrante;
+                            const docRef = doc(db, "bancoVLI", p.id);
+                            await updateDoc(docRef, { historico: p.historico });
+                        }
+                    }
+                });
+            }
+
             const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await deleteDoc(doc(db, "ativasVLI", id));
+            alert(`LDL encerrada com sucesso por ${infoEncerrante}!`);
         };
 
         function calcularProximoNumeroLDL() {
@@ -244,6 +411,11 @@
         }
 
         window.salvarLDL = async function() {
+            if (!controladorLogado || !dadosControladorLogado) {
+                alert("Acesso negado! Faça o Login para utilizar este recurso.");
+                return;
+            }
+
             const numVal = document.getElementById('inputNumLDL').value.trim();
             const controladorVal = document.getElementById('inputControlador').value.trim();
             const dataVal = obterDataLocalISO();
@@ -251,7 +423,7 @@
             const msgErro = document.getElementById('mensagemPreenchimento');
 
             if (!controladorVal) {
-                msgErro.innerHTML = `<div class="error-text">Erro: Preencha o nome do Controlador de Pátio!</div>`;
+                msgErro.innerHTML = `<div class="error-text">Erro: Controlador de Pátio não identificado!</div>`;
                 return;
             }
 
@@ -314,7 +486,6 @@
             const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await addDoc(collection(db, "ativasVLI"), novaLDL);
 
-            // Disparo automático do e-mail via EmailJS alinhado perfeitamente com o template
             const parametrosEmail = {
                 num: novaLDL.num,
                 nome: novaLDL.nome,
@@ -337,10 +508,20 @@
                 });
             
             alert("LDL Salva e e-mail enviado com sucesso!");
-            location.reload();
+            
+            document.getElementById('secaoPreenchimento').style.display = "none";
+            document.getElementById('inputLocal').value = "";
+            document.getElementById('inputAtividade').value = "";
+            document.getElementById('inputHorarioDe').value = "";
+            document.getElementById('inputHorarioAte').value = "";
         };
 
         window.buscarLDLPorPeriodo = function() {
+            if (!controladorLogado) {
+                alert("Acesso negado! Faça o Login para utilizar este recurso.");
+                return;
+            }
+
             const dataInicio = document.getElementById('dataInicioBusca').value;
             const dataFim = document.getElementById('dataFimBusca').value;
 
@@ -391,6 +572,7 @@
                         <strong>Atividade:</strong> ${item.atividade || '-'}<br>
                         ${item.horarioDe ? `<strong>Horário:</strong> ${item.horarioDe} às ${item.horarioAte || ''}<br>` : ''}
                         <strong>Data:</strong> ${item.data || '-'}<br>
+                        ${item.encerradoPor ? `<strong>Encerrado por:</strong> ${item.encerradoPor}<br>` : ''}
                     </div>
                 `).join('');
             } else {
@@ -405,6 +587,11 @@
         };
 
         window.realizarBusca = function() {
+            if (!controladorLogado) {
+                alert("Acesso negado! Faça o Login para utilizar este recurso.");
+                return;
+            }
+
             const termo = document.getElementById('buscaInput').value.trim();
             const msgConsulta = document.getElementById('mensagemConsulta');
 
@@ -574,7 +761,7 @@
             const msgDesc = document.getElementById('mensagemDesbloqueio');
 
             if (senha !== "2030") {
-                msgDesc.innerHTML = `<div class="error-text">Senha incorreta! Digite a senha correta.</div>`;
+                msgDesc.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
                 return;
             }
 
@@ -598,7 +785,11 @@
             } else {
                 document.getElementById('secaoPreenchimento').style.display = "block";
                 document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
-                document.getElementById('inputControlador').value = "";
+                if (dadosControladorLogado) {
+                    document.getElementById('inputControlador').value = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
+                } else {
+                    document.getElementById('inputControlador').value = "";
+                }
                 document.getElementById('inputLocal').value = "";
                 document.getElementById('inputAtividade').value = "";
                 document.getElementById('inputHorarioDe').value = "";
@@ -619,7 +810,7 @@
             }
 
             if(senhaDigitada !== "2030") {
-                msgAuth.innerHTML = `<div class="error-text">Senha incorreta! Digite a senha correta.</div>`;
+                msgAuth.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
                 return;
             }
 
@@ -642,6 +833,9 @@
             document.getElementById('mensagem').innerHTML = "";
             document.getElementById('secaoPreenchimento').style.display = "block";
             document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
+            if (dadosControladorLogado) {
+                document.getElementById('inputControlador').value = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
+            }
             document.getElementById('dataAtualLDL').value = obterDataLocalISO();
             
             document.getElementById('nomeAutorizacao').value = "";
@@ -662,11 +856,17 @@
                     ${h.atividade ? `<strong>Atividade:</strong> ${h.atividade}<br>` : ''}
                     ${h.horarioDe ? `<strong>Horário:</strong> ${h.horarioDe} às ${h.horarioAte || ''}<br>` : ''}
                     ${h.resp ? `<strong>Responsável:</strong> ${h.resp}<br>` : ''}
+                    ${h.encerradoPor ? `<strong>Encerrado por:</strong> ${h.encerradoPor}<br>` : ''}
                 </div>
             `).join('');
         };
 
         window.cadastrar = async function() {
+            if (!controladorLogado) {
+                alert("Acesso negado! Faça o Login para utilizar este recurso.");
+                return;
+            }
+
             const nome = document.getElementById('novoNome').value.trim();
             const cargo = document.getElementById('novoCargo').value.trim();
             const matricula = document.getElementById('novaMatricula').value.trim();
