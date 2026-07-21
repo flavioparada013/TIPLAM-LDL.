@@ -19,6 +19,13 @@
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
         #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
+    <!-- SDK do EmailJS -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("4fRKHbs_drqHrzrkH");
+        })();
+    </script>
 </head>
 <body>
     <div class="container">
@@ -307,32 +314,29 @@
             const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await addDoc(collection(db, "ativasVLI"), novaLDL);
 
-            // Envio automático de cópia por e-mail (usando mailto para cliente de email padrão ou integração simulada)
-            const emailDestino = "vinicius.dangelo.menezes@vli-logistica.com.br";
-            const assuntoEmail = encodeURIComponent(`Nova LDL Aberta - Nº ${novaLDL.num} - ${novaLDL.nome}`);
-            const corpoEmail = encodeURIComponent(
-                `Uma nova LDL foi aberta:\n\n` +
-                `Nome: ${novaLDL.nome}\n` +
-                `Cargo: ${novaLDL.cargo}\n` +
-                `Matrícula: ${novaLDL.matricula || '-'}\n` +
-                `CPF: ${novaLDL.cpf || '-'}\n` +
-                `Número da LDL: ${novaLDL.num}\n` +
-                `Controlador de Pátio: ${novaLDL.controlador}\n` +
-                `Local: ${novaLDL.local}\n` +
-                `Atividade: ${novaLDL.atividade}\n` +
-                `Horário: ${novaLDL.horarioDe} às ${novaLDL.horarioAte}\n` +
-                `Data: ${novaLDL.data}`
-            );
+            // Disparo automático do e-mail via EmailJS alinhado perfeitamente com o template
+            const parametrosEmail = {
+                num: novaLDL.num,
+                nome: novaLDL.nome,
+                cargo: novaLDL.cargo,
+                matricula: novaLDL.matricula || '-',
+                cpf: novaLDL.cpf || '-',
+                controlador: novaLDL.controlador,
+                local: novaLDL.local,
+                atividade: novaLDL.atividade,
+                horarioDe: novaLDL.horarioDe,
+                horarioAte: novaLDL.horarioAte,
+                data: novaLDL.data
+            };
+
+            emailjs.send("servico_dhrfg4c", "template_g11is4b", parametrosEmail)
+                .then(function(response) {
+                    console.log("E-mail enviado com sucesso!", response.status, response.text);
+                }, function(error) {
+                    console.error("Erro ao enviar o e-mail:", error);
+                });
             
-            // Cria um link temporário oculto para disparar o envio de e-mail de forma automática
-            const linkEmail = document.createElement('a');
-            linkEmail.href = `mailto:${emailDestino}?subject=${assuntoEmail}&body=${corpoEmail}`;
-            linkEmail.style.display = 'none';
-            document.body.appendChild(linkEmail);
-            linkEmail.click();
-            document.body.removeChild(linkEmail);
-            
-            alert("LDL Salva e cópia enviada por e-mail!");
+            alert("LDL Salva e e-mail enviado com sucesso!");
             location.reload();
         };
 
