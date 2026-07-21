@@ -16,7 +16,7 @@
         
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
-        #secaoPreenchimento { display: none !important; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
         #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
 </head>
@@ -121,7 +121,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-        // CREDENCIAIS DO SEU PROJETO FIREBASE INSERIDAS:
         const firebaseConfig = {
             apiKey: "AIzaSyCRrXnA-sZh3x-1wcE4U1Njf_oEvsHqUjA",
             authDomain: "ldl-tiplam-9f5fc.firebaseapp.com",
@@ -150,14 +149,12 @@
         document.getElementById('novaDataCadastro').value = dataHojeStr;
         document.getElementById('dataAtualLDL').value = dataHojeStr;
 
-        // Sincronização em Tempo Real com o Firestore
         onSnapshot(collection(db, "bancoVLI"), async (snapshot) => {
             bancoDeDados = [];
             snapshot.forEach((docSnap) => {
                 bancoDeDados.push({ id: docSnap.id, ...docSnap.data() });
             });
 
-            // Se o banco estiver vazio na nuvem, insere os dados iniciais padrão
             if (bancoDeDados.length === 0) {
                 const iniciais = [
                     { nome: "Bruna", cargo: "Maquinista", matricula: "30102525", cpf: "", ultimaLDL: "2026-01-05", historico: [], bloqueado: false },
@@ -497,6 +494,11 @@
                 document.getElementById('secaoPreenchimento').style.display = "none";
             } else {
                 document.getElementById('secaoPreenchimento').style.display = "block";
+                document.getElementById('inputNumLDL').value = "";
+                document.getElementById('inputLocal').value = "";
+                document.getElementById('inputAtividade').value = "";
+                document.getElementById('inputHorarioDe').value = "";
+                document.getElementById('inputHorarioAte').value = "";
                 document.getElementById('dataAtualLDL').value = obterDataLocalISO();
                 document.getElementById('mensagem').innerHTML = "";
             }
