@@ -177,8 +177,15 @@
         let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
-        let controladorLogado = false;
-        let dadosControladorLogado = null;
+
+        // Recupera o login salvo no navegador ao atualizar a página
+        let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
+        let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
+
+        // Atualiza o botão do topo logo ao carregar caso já esteja logado
+        window.addEventListener('DOMContentLoaded', () => {
+            atualizarBotaoLoginTopo();
+        });
 
         function obterDataLocalISO() {
             const agora = new Date();
@@ -205,6 +212,9 @@
             if (controladorLogado) {
                 controladorLogado = false;
                 dadosControladorLogado = null;
+                // Limpa a memória do navegador ao sair
+                localStorage.removeItem("vli_controlador_logado");
+                localStorage.removeItem("vli_dados_controlador");
                 atualizarBotaoLoginTopo();
                 alert("Você saiu do login com sucesso!");
                 voltarAoPainelControlador();
@@ -293,6 +303,11 @@
             msg.innerHTML = "";
             controladorLogado = true;
             dadosControladorLogado = encontrado;
+
+            // Salva o estado de login no navegador para persistir ao atualizar a página
+            localStorage.setItem("vli_controlador_logado", "true");
+            localStorage.setItem("vli_dados_controlador", JSON.stringify(encontrado));
+
             atualizarBotaoLoginTopo();
             alert("Login realizado com sucesso! Acesso total concedido.");
             document.getElementById('secaoLoginControlador').style.display = 'none';
