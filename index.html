@@ -136,7 +136,7 @@
         document.getElementById('novaDataCadastro').value = dataHojeStr;
         document.getElementById('dataAtualLDL').value = dataHojeStr;
 
-        // Associações de eventos via JavaScript puro para garantir o funcionamento dos botões
+        // Associações de eventos via JavaScript
         document.getElementById('btnVerificar').addEventListener('click', function() {
             if (!pessoaEncontrada || !pessoaEncontrada.ultimaLDL) {
                 document.getElementById('mensagem').innerHTML = `<div class="error-text">Erro: Nenhuma pessoa selecionada ou dados incompletos.</div>`;
@@ -151,7 +151,6 @@
                 `;
                 document.getElementById('secaoPreenchimento').style.display = "none";
                 
-                // Vincula o botão gerado dinamicamente com segurança
                 setTimeout(() => {
                     const btnAuth = document.getElementById('btnAutorizarAcao');
                     if(btnAuth) {
@@ -486,7 +485,7 @@
             const secao = document.getElementById('secaoHistorico');
             secao.style.display = "block";
             const lista = document.getElementById('listaHistorico');
-            lista.innerHTML = (pessoaEnkolas = pessoaEncontrada.historico || []).map(h => `
+            lista.innerHTML = (pessoaEncontrada.historico || []).map(h => `
                 <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px;">
                     <strong>Data:</strong> ${h.data}<br>
                     <strong>Tipo:</strong> ${h.tipo}<br>
