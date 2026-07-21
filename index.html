@@ -16,7 +16,8 @@
         
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro { display: none; }
-        #secaoPreenchimento, #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoPreenchimento { display: none !important; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -102,7 +103,6 @@
         </div>
     </div>
 
-    <!-- Scripts do Firebase (SDK Modular) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -155,7 +155,6 @@
                     await setDoc(doc(db, "bancoVLI", "pessoa_" + iniciais[i].matricula), iniciais[i]);
                 }
             } else if (pessoaEncontrada) {
-                // Atualiza a referência da pessoa caso esteja aberta na tela e mude na nuvem
                 pessoaEncontrada = bancoDeDados.find(p => p.id === pessoaEncontrada.id);
                 if (document.getElementById('resultado').innerHTML !== "" && pessoaEncontrada) {
                     atualizarTelaResultado();
@@ -343,6 +342,8 @@
             document.getElementById('btnVerificar').style.display = "block";
             document.getElementById('btnHistorico').style.display = "block";
             document.getElementById('mensagem').innerHTML = "";
+            document.getElementById('secaoPreenchimento').style.display = "none";
+            document.getElementById('secaoAutorizacao').style.display = "none";
         }
 
         window.buscarPessoa = function() {
