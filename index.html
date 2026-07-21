@@ -38,8 +38,13 @@
             <div id="mensagemConsulta"></div>
             
             <div class="form-group" style="border-top: 1px solid #eee; padding-top: 15px;">
-                <input type="date" id="dataBusca">
-                <button onclick="buscarLDLPorData()" style="background-color: #28a745;">Buscar LDL</button>
+                <label style="font-size: 13px; font-weight: bold; color: #555;">Buscar LDL por Período:</label>
+                <div style="display: flex; gap: 10px; align-items: center; margin-top: 5px;">
+                    <input type="date" id="dataInicioBusca" style="margin-bottom:0;" title="Data Inicial">
+                    <span style="font-weight: bold; color: #555;">até</span>
+                    <input type="date" id="dataFimBusca" style="margin-bottom:0;" title="Data Final">
+                </div>
+                <button onclick="buscarLDLPorPeriodo()" style="background-color: #28a745;">Buscar LDL</button>
             </div>
 
             <div id="resultado"></div>
@@ -86,7 +91,8 @@
         <div id="secaoPreenchimento">
             <h3>LDL</h3>
             <div id="mensagemPreenchimento"></div>
-            <input type="text" id="inputNumLDL" placeholder="Nº LDL">
+            <input type="text" id="inputNumLDL" placeholder="Nº LDL" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+            <input type="text" id="inputControlador" placeholder="Controlador de Pátio">
             <input type="text" id="inputLocal" placeholder="Local">
             <input type="text" id="inputAtividade" placeholder="Atividade">
             <div style="display: flex; gap: 10px; align-items: center; margin-bottom: 5px;">
@@ -187,7 +193,7 @@
                 document.getElementById('secaoAtivas').style.display = "block";
                 container.innerHTML = ldlAtivas.map((l) => `
                     <div class="card-ldl">
-                        <strong>${l.nome}</strong> - Nº ${l.num}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                        <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
                         <button onclick="encerrarLDL('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
                     </div>
                 `).join('');
@@ -201,11 +207,58 @@
             await deleteDoc(doc(db, "ativasVLI", id));
         };
 
+        function calcularProximoNumeroLDL() {
+            const dataHoje = obterDataLocalISO();
+            let maiorNumero = 0;
+
+            ldlAtivas.forEach(l => {
+                if (l.data === dataHoje && l.num) {
+                    const numParsed = parseInt(l.num, 10);
+                    if (!isNaN(numParsed) && numParsed > maiorNumero) {
+                        maiorNumero = numParsed;
+                    }
+                }
+            });
+
+            bancoDeDados.forEach(p => {
+                if (p.historico) {
+                    p.historico.forEach(h => {
+                        if (h.data === dataHoje && h.num) {
+                            const numParsed = parseInt(h.num, 10);
+                            if (!isNaN(numParsed) && numParsed > maiorNumero) {
+                                maiorNumero = numParsed;
+                            }
+                        }
+                    });
+                }
+            });
+
+            return String(maiorNumero + 1).padStart(3, '0');
+        }
+
         window.salvarLDL = async function() {
             const numVal = document.getElementById('inputNumLDL').value.trim();
+            const controladorVal = document.getElementById('inputControlador').value.trim();
             const dataVal = obterDataLocalISO();
             document.getElementById('dataAtualLDL').value = dataVal;
             const msgErro = document.getElementById('mensagemPreenchimento');
+
+            if (!controladorVal) {
+                msgErro.innerHTML = `<div class="error-text">Erro: Preencha o nome do Controlador de Pátio!</div>`;
+                return;
+            }
+
+            // Verifica se este cadastro já possui uma LDL aberta (ativa)
+            const jaTemLDLAtiva = ldlAtivas.some(l => {
+                const mesmaMatricula = pessoaEncontrada.matricula && l.matricula === pessoaEncontrada.matricula;
+                const mesmoCpf = pessoaEncontrada.cpf && l.cpf === pessoaEncontrada.cpf;
+                return mesmaMatricula || mesmoCpf;
+            });
+
+            if (jaTemLDLAtiva) {
+                msgErro.innerHTML = `<div class="error-text">Erro: Este cadastro já possui uma LDL em aberto! É necessário encerrar a LDL atual antes de abrir outra.</div>`;
+                return;
+            }
 
             let numeroDuplicado = false;
             
@@ -236,6 +289,7 @@
                 matricula: pessoaEncontrada.matricula,
                 cpf: pessoaEncontrada.cpf,
                 num: numVal, 
+                controlador: controladorVal,
                 local: document.getElementById('inputLocal').value,
                 atividade: document.getElementById('inputAtividade').value,
                 horarioDe: document.getElementById('inputHorarioDe').value,
@@ -258,13 +312,25 @@
             location.reload();
         };
 
-        window.buscarLDLPorData = function() {
-            const dataEscolhida = document.getElementById('dataBusca').value;
-            if(!dataEscolhida) { alert("Selecione uma data"); return; }
+        window.buscarLDLPorPeriodo = function() {
+            const dataInicio = document.getElementById('dataInicioBusca').value;
+            const dataFim = document.getElementById('dataFimBusca').value;
+
+            if(!dataInicio || !dataFim) { 
+                alert("Selecione a data inicial e a data final"); 
+                return; 
+            }
+
+            if(dataInicio > dataFim) {
+                alert("A data inicial não pode ser maior que a data final.");
+                return;
+            }
             
             let resultadosEncontrados = [];
             bancoDeDados.forEach(pessoa => {
-                const ldlData = (pessoa.historico || []).filter(h => h.data === dataEscolhida);
+                const ldlData = (pessoa.historico || []).filter(h => {
+                    return h.data && h.data >= dataInicio && h.data <= dataFim && h.tipo === "Preenchimento";
+                });
                 if(ldlData.length > 0) {
                     ldlData.forEach(l => {
                         resultadosEncontrados.push({
@@ -280,24 +346,33 @@
 
             const telaResultado = document.getElementById('resultado');
             if(resultadosEncontrados.length > 0) {
-                telaResultado.innerHTML = "<h3>LDL encontradas em " + dataEscolhida + ":</h3>" + 
-                resultadosEncontrados.map(item => `
+                telaResultado.innerHTML = `
+                    <h3>Resultados do Período (${dataInicio} até ${dataFim})</h3>
+                    <div style="background: #e9f7ef; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-weight: bold; color: #28a745;">
+                        Quantidade de LDLs abertas neste período: ${resultadosEncontrados.length}
+                    </div>
+                ` + resultadosEncontrados.map(item => `
                     <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #fff;">
                         <strong>Nome:</strong> ${item.nome || '-'}<br>
                         <strong>Cargo/Função:</strong> ${item.cargo || '-'}<br>
                         ${item.matricula ? `<strong>Matrícula:</strong> ${item.matricula}<br>` : ''}
                         ${item.cpf ? `<strong>CPF:</strong> ${item.cpf}<br>` : ''}
-                        <strong>Tipo:</strong> ${item.tipo || 'Preenchimento'}<br>
-                        ${item.num ? `<strong>Número da LDL:</strong> ${item.num}<br>` : ''}
-                        ${item.local ? `<strong>Local:</strong> ${item.local}<br>` : ''}
-                        ${item.atividade ? `<strong>Atividade:</strong> ${item.atividade}<br>` : ''}
+                        <strong>Número da LDL:</strong> ${item.num || '-'}<br>
+                        <strong>Controlador de Pátio:</strong> ${item.controlador || '-'}<br>
+                        <strong>Local:</strong> ${item.local || '-'}<br>
+                        <strong>Atividade:</strong> ${item.atividade || '-'}<br>
                         ${item.horarioDe ? `<strong>Horário:</strong> ${item.horarioDe} às ${item.horarioAte || ''}<br>` : ''}
                         <strong>Data:</strong> ${item.data || '-'}<br>
-                        ${item.resp ? `<strong>Responsável Autorização:</strong> ${item.resp}<br>` : ''}
                     </div>
                 `).join('');
             } else {
-                telaResultado.innerHTML = "Nenhuma LDL encontrada nesta data.";
+                telaResultado.innerHTML = `
+                    <h3>Resultados do Período (${dataInicio} até ${dataFim})</h3>
+                    <div style="background: #f8d7da; padding: 10px; border-radius: 5px; margin-bottom: 10px; font-weight: bold; color: #dc3545;">
+                        Quantidade de LDLs abertas neste período: 0
+                    </div>
+                    Nenhuma LDL encontrada neste período.
+                `;
             }
         };
 
@@ -494,7 +569,8 @@
                 document.getElementById('secaoPreenchimento').style.display = "none";
             } else {
                 document.getElementById('secaoPreenchimento').style.display = "block";
-                document.getElementById('inputNumLDL').value = "";
+                document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
+                document.getElementById('inputControlador').value = "";
                 document.getElementById('inputLocal').value = "";
                 document.getElementById('inputAtividade').value = "";
                 document.getElementById('inputHorarioDe').value = "";
@@ -537,6 +613,7 @@
             document.getElementById('secaoAutorizacao').style.display = "none";
             document.getElementById('mensagem').innerHTML = "";
             document.getElementById('secaoPreenchimento').style.display = "block";
+            document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
             document.getElementById('dataAtualLDL').value = obterDataLocalISO();
             
             document.getElementById('nomeAutorizacao').value = "";
@@ -552,6 +629,7 @@
                     <strong>Data:</strong> ${h.data}<br>
                     <strong>Tipo:</strong> ${h.tipo}<br>
                     ${h.num ? `<strong>Nº LDL:</strong> ${h.num}<br>` : ''}
+                    ${h.controlador ? `<strong>Controlador de Pátio:</strong> ${h.controlador}<br>` : ''}
                     ${h.local ? `<strong>Local:</strong> ${h.local}<br>` : ''}
                     ${h.atividade ? `<strong>Atividade:</strong> ${h.atividade}<br>` : ''}
                     ${h.horarioDe ? `<strong>Horário:</strong> ${h.horarioDe} às ${h.horarioAte || ''}<br>` : ''}
