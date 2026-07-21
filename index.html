@@ -305,6 +305,7 @@
                 document.getElementById('secaoEdicaoCadastro').style.display = "none";
                 document.getElementById('mensagem').innerHTML = "";
                 document.getElementById('secaoAutorizacao').style.display = "none";
+                document.getElementById('secaoPreenchimento').style.display = "none";
                 return;
             }
 
@@ -325,9 +326,10 @@
             document.getElementById('btnEditarCadastro').style.display = "none";
             document.getElementById('secaoHistorico').style.display = "none";
             document.getElementById('secaoEdicaoCadastro').style.display = "none";
+            document.getElementById('secaoAutorizacao').style.display = "none";
+            document.getElementById('secaoPreenchimento').style.display = "none";
             document.getElementById('mensagem').innerHTML = "";
             document.getElementById('mensagemConsulta').innerHTML = "";
-            document.getElementById('secaoAutorizacao').style.display = "none";
             document.getElementById('buscaInput').value = "";
         };
 
@@ -354,6 +356,8 @@
                 document.getElementById('btnVerificar').style.display = "none";
                 document.getElementById('btnHistorico').style.display = "none";
                 document.getElementById('mensagem').innerHTML = "";
+                document.getElementById('secaoAutorizacao').style.display = "none";
+                document.getElementById('secaoPreenchimento').style.display = "none";
             }
         };
 
@@ -407,6 +411,7 @@
                     <div class="error-text">Sem abrir LDL há mais de 90 dias, consulte a Inspetoria.</div>
                     <button onclick="document.getElementById('secaoAutorizacao').style.display='block'" style="background-color: #dc3545;">Autorizar abertura de LDL</button>
                 `;
+                document.getElementById('secaoPreenchimento').style.display = "none";
             } else {
                 document.getElementById('secaoPreenchimento').style.display = "block";
                 document.getElementById('dataAtualLDL').value = obterDataLocalISO();
@@ -441,11 +446,16 @@
                 historico: arrayUnion(novoHistoricoItem)
             });
 
+            pessoaEncontrada.ultimaLDL = dataHoje;
+
             alert("Autorização concedida com sucesso!");
             document.getElementById('secaoAutorizacao').style.display = "none";
+            document.getElementById('mensagem').innerHTML = "";
             document.getElementById('secaoPreenchimento').style.display = "block";
             document.getElementById('dataAtualLDL').value = obterDataLocalISO();
-            document.getElementById('mensagem').innerHTML = "";
+            
+            document.getElementById('nomeAutorizacao').value = "";
+            document.getElementById('senhaAutorizacao').value = "";
         };
 
         window.mostrarHistorico = function() {
