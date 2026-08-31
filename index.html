@@ -188,16 +188,13 @@
         let ldlAtivas = [];
         let pessoaEncontrada = null;
 
-        // Recupera o login salvo no navegador ao atualizar a página
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
 
-        // Atualiza o botão do topo logo ao carregar caso já esteja logado
         window.addEventListener('DOMContentLoaded', () => {
             atualizarBotaoLoginTopo();
         });
 
-        // Atualiza a tela automaticamente a cada 5 segundos para checar o horário limite das LDLs
         setInterval(() => {
             if (ldlAtivas.length > 0) {
                 renderizarAtivas();
@@ -229,7 +226,6 @@
             if (controladorLogado) {
                 controladorLogado = false;
                 dadosControladorLogado = null;
-                // Limpa a memória do navegador ao sair
                 localStorage.removeItem("vli_controlador_logado");
                 localStorage.removeItem("vli_dados_controlador");
                 atualizarBotaoLoginTopo();
@@ -321,7 +317,6 @@
             controladorLogado = true;
             dadosControladorLogado = encontrado;
 
-            // Salva o estado de login no navegador para persistir ao atualizar a página
             localStorage.setItem("vli_controlador_logado", "true");
             localStorage.setItem("vli_dados_controlador", JSON.stringify(encontrado));
 
@@ -425,7 +420,6 @@
         };
 
         window.executarEncerramentoLDL = async function(id) {
-            // Verifica se todos os 6 checkboxes foram marcados
             const c1 = document.getElementById(`check1_${id}`).checked;
             const c2 = document.getElementById(`check2_${id}`).checked;
             const c3 = document.getElementById(`check3_${id}`).checked;
@@ -447,16 +441,16 @@
             
             const ldlAlvo = ldlAtivas.find(l => l.id === id);
             if (ldlAlvo) {
-                bancoDeDados.forEach(async p => {
+                for (let p of bancoDeDados) {
                     if (p.historico) {
-                        const index = p.historico.findIndex(h => h.num === ldlAlvo.num && h.data === ldlAlvo.data);
+                        const index = p.historico.findIndex(h => h.tipo === "Preenchimento" && h.num === ldlAlvo.num && h.data === ldlAlvo.data);
                         if (index !== -1) {
                             p.historico[index].encerradoPor = infoEncerrante;
                             const docRef = doc(db, "bancoVLI", p.id);
                             await updateDoc(docRef, { historico: p.historico });
                         }
                     }
-                });
+                }
             }
 
             await deleteDoc(doc(db, "ativasVLI", id));
@@ -590,7 +584,6 @@
             
             alert("LDL Salva e e-mail enviado com sucesso!");
             
-            // Limpa os campos de preenchimento e retorna para a tela inicial
             document.getElementById('secaoPreenchimento').style.display = "none";
             document.getElementById('inputLocal').value = "";
             document.getElementById('inputAtividade').value = "";
