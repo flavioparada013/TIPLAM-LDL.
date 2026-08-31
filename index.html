@@ -187,7 +187,7 @@
         let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
-        let ldlComChecklistAberto = null; // Guarda o ID da LDL que está com o checklist aberto
+        let ldlComChecklistAberto = null; // Guarda o ID da LDL com o checklist aberto
 
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
@@ -196,9 +196,9 @@
             atualizarBotaoLoginTopo();
         });
 
-        // Verificação a cada 5 segundos
+        // Verificação a cada 5 segundos (só atualiza se NÃO houver checklist aberto)
         setInterval(() => {
-            if (ldlAtivas.length > 0) {
+            if (ldlAtivas.length > 0 && !ldlComChecklistAberto) {
                 renderizarAtivas();
             }
         }, 5000);
@@ -364,10 +364,15 @@
             snapshot.forEach((docSnap) => {
                 ldlAtivas.push({ id: docSnap.id, ...docSnap.data() });
             });
-            renderizarAtivas();
+            // Se houver um checklist aberto, não redesenha para não apagar o preenchimento do usuário
+            if (!ldlComChecklistAberto) {
+                renderizarAtivas();
+            }
         });
 
         window.renderizarAtivas = function() {
+            if (ldlComChecklistAberto) return; // Bloqueia qualquer renderização automática se estiver preenchendo o checklist
+
             const container = document.getElementById('listaAtivas');
             if (ldlAtivas.length > 0) {
                 document.getElementById('secaoAtivas').style.display = "block";
@@ -386,21 +391,6 @@
                         if (horaAtualMinutos > horarioFimMinutos) {
                             estaEstourado = true;
                         }
-                    }
-
-                    // SE o checklist desta LDL estiver aberto, NÃO reescrevemos o bloco de botões para evitar zerar os cliques
-                    if (ldlComChecklistAberto === l.id) {
-                        return `
-                            <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}" id="card-item-${l.id}">
-                                ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
-                                <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
-                                ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
-                                <div id="container-btn-${l.id}">
-                                    <!-- Mantém exatamente o conteúdo atual do checklist aberto -->
-                                    ${document.getElementById(`container-btn-${l.id}`) ? document.getElementById(`container-btn-${l.id}`).innerHTML : ''}
-                                </div>
-                            </div>
-                        `;
                     }
 
                     return `
@@ -426,7 +416,7 @@
                 return;
             }
 
-            ldlComChecklistAberto = id;
+            ldlComChecklistAberto = id; // Trava as atualizações automáticas
             const containerBtn = document.getElementById(`container-btn-${id}`);
             containerBtn.innerHTML = `
                 <div style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #dc3545; border-radius: 5px; color: #333;">
@@ -444,7 +434,7 @@
         };
 
         window.cancelarChecklistEncerramento = function() {
-            ldlComChecklistAberto = null;
+            ldlComChecklistAberto = null; // Destrava as atualizações
             renderizarAtivas();
         };
 
@@ -466,7 +456,7 @@
                 return;
             }
 
-            ldlComChecklistAberto = null;
+            ldlComChecklistAberto = null; // Destrava as atualizações
             const infoEncerrante = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
             
             const ldlAlvo = ldlAtivas.find(l => l.id === id);
