@@ -187,6 +187,7 @@
         let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
+        let ldlComChecklistAberto = null; // Guarda o ID da LDL que está com o checklist aberto para não re-renderizar em cima
 
         // Recupera o login salvo no navegador ao atualizar a página
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
@@ -197,12 +198,12 @@
             atualizarBotaoLoginTopo();
         });
 
-        // Atualiza a tela automaticamente a cada 30 segundos para checar o horário limite das LDLs
+        // Atualiza a verificação visual do horário limite a cada 5 segundos, sem recriar os elementos caso o checklist esteja ativo
         setInterval(() => {
             if (ldlAtivas.length > 0) {
                 renderizarAtivas();
             }
-        }, 30000);
+        }, 5000);
 
         function obterDataLocalISO() {
             const agora = new Date();
@@ -391,18 +392,32 @@
                         }
                     }
 
+                    // Se esta LDL específica estiver com o checklist aberto, preservamos o HTML interno do container de botões para não zerar as marcações
+                    let conteudoBotaoHtml = '';
+                    if (ldlComChecklistAberto === l.id) {
+                        const containerBtnAtual = document.getElementById(`container-btn-${l.id}`);
+                        if (containerBtnAtual && containerBtnAtual.innerHTML.includes('check1_')) {
+                            conteudoBotaoHtml = containerBtnAtual.innerHTML;
+                        }
+                    }
+
+                    if (!conteudoBotaoHtml) {
+                        conteudoBotaoHtml = `<button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>`;
+                    }
+
                     return `
                         <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}" id="card-item-${l.id}">
                             ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
                             <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
                             ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
                             <div id="container-btn-${l.id}">
-                                <button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
+                                ${conteudoBotaoHtml}
                             </div>
                         </div>
                     `;
                 }).join('');
             } else {
+                ldlComChecklistAberto = null;
                 document.getElementById('secaoAtivas').style.display = "none";
             }
         };
@@ -413,6 +428,7 @@
                 return;
             }
 
+            ldlComChecklistAberto = id;
             const containerBtn = document.getElementById(`container-btn-${id}`);
             containerBtn.innerHTML = `
                 <div style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #dc3545; border-radius: 5px; color: #333;">
@@ -424,9 +440,14 @@
                     <label style="display: block; margin-bottom: 8px; font-size: 14px;">- A via não coloca em risco a circulação de trens?<br><input type="checkbox" id="check5_${id}"></label>
                     <label style="display: block; margin-bottom: 12px; font-size: 14px;">- Circulação normal?<br><input type="checkbox" id="check6_${id}"></label>
                     <button onclick="executarEncerramentoLDL('${id}')" style="background-color: #28a745; padding: 8px; width: 100%; margin-top: 5px;">Confirmar</button>
-                    <button onclick="renderizarAtivas()" style="background-color: #666; padding: 6px; width: 100%; margin-top: 5px;">Cancelar</button>
+                    <button onclick="cancelarChecklistEncerramento()" style="background-color: #666; padding: 6px; width: 100%; margin-top: 5px;">Cancelar</button>
                 </div>
             `;
+        };
+
+        window.cancelarChecklistEncerramento = function() {
+            ldlComChecklistAberto = null;
+            renderizarAtivas();
         };
 
         window.executarEncerramentoLDL = async function(id) {
@@ -448,6 +469,7 @@
                 return;
             }
 
+            ldlComChecklistAberto = null;
             const infoEncerrante = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
             
             const ldlAlvo = ldlAtivas.find(l => l.id === id);
@@ -960,7 +982,7 @@
             const matricula = document.getElementById('novaMatricula').value.trim();
             const cpf = document.getElementById('novoCpf').value.trim();
             const dataCadastro = obterDataLocalISO();
-            document.getElementById('novaDataCadastro').value = dataCadastro;
+            document.getElementById('novaDataCadastro').value, dataCadastro;
             const msgErro = document.getElementById('mensagemCadastro');
 
             if (!nome || !cargo || (!matricula && !cpf)) {
