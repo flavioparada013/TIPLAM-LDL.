@@ -375,6 +375,15 @@
                 const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
 
                 container.innerHTML = ldlAtivas.map((l) => {
+                    // Verifica se o checklist deste card específico já está aberto na tela
+                    const containerBtn = document.getElementById(`container-btn-${l.id}`);
+                    const estaComChecklistAberto = containerBtn && containerBtn.innerHTML.includes('check1_');
+
+                    // Se o checklist estiver aberto, preserva o card atual para não apagar o preenchimento
+                    if (estaComChecklistAberto) {
+                        return document.getElementById(`card-item-${l.id}`).outerHTML;
+                    }
+
                     let estaEstourado = false;
                     
                     if (l.data === dataHojeStr && l.horarioAte) {
