@@ -14,6 +14,16 @@
         .error-text { color: #dc3545; font-weight: bold; padding: 10px; border: 1px solid #dc3545; border-radius: 5px; background: #f8d7da; margin-bottom: 10px; }
         .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; }
         
+        @keyframes piscarAlerta {
+            0% { background-color: #e9f7ef; border-color: #28a745; }
+            50% { background-color: #f8d7da; border-color: #dc3545; }
+            100% { background-color: #e9f7ef; border-color: #28a745; }
+        }
+        .card-ldl-estourado {
+            animation: piscarAlerta 1s infinite;
+            border: 2px solid #dc3545 !important;
+        }
+
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
@@ -357,13 +367,32 @@
             const container = document.getElementById('listaAtivas');
             if(ldlAtivas.length > 0) {
                 document.getElementById('secaoAtivas').style.display = "block";
-                container.innerHTML = ldlAtivas.map((l) => `
-                    <div class="card-ldl">
-                        <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
-                        ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
-                        <button onclick="encerrarLDL('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
-                    </div>
-                `).join('');
+                
+                const agora = new Date();
+                const dataHojeStr = obterDataLocalISO();
+                const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
+
+                container.innerHTML = ldlAtivas.map((l) => {
+                    let estaEstourado = false;
+                    
+                    if (l.data === dataHojeStr && l.horarioAte) {
+                        const [horaFim, minFim] = l.horarioAte.split(':').map(Number);
+                        const horarioFimMinutos = horaFim * 60 + minFim;
+                        
+                        if (horaAtualMinutos > horarioFimMinutos) {
+                            estaEstourado = true;
+                        }
+                    }
+
+                    return `
+                        <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}">
+                            ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
+                            <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                            ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
+                            <button onclick="encerrarLDL('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
+                        </div>
+                    `;
+                }).join('');
             } else {
                 document.getElementById('secaoAtivas').style.display = "none";
             }
