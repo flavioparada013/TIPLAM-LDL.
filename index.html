@@ -187,18 +187,16 @@
         let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
-        let ldlComChecklistAberto = null; // Guarda o ID da LDL que está com o checklist aberto para não re-renderizar em cima
+        let ldlComChecklistAberto = null; // Guarda o ID da LDL que está com o checklist aberto
 
-        // Recupera o login salvo no navegador ao atualizar a página
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
 
-        // Atualiza o botão do topo logo ao carregar caso já esteja logado
         window.addEventListener('DOMContentLoaded', () => {
             atualizarBotaoLoginTopo();
         });
 
-        // Atualiza a verificação visual do horário limite a cada 5 segundos, sem recriar os elementos caso o checklist esteja ativo
+        // Verificação a cada 5 segundos
         setInterval(() => {
             if (ldlAtivas.length > 0) {
                 renderizarAtivas();
@@ -230,7 +228,6 @@
             if (controladorLogado) {
                 controladorLogado = false;
                 dadosControladorLogado = null;
-                // Limpa a memória do navegador ao sair
                 localStorage.removeItem("vli_controlador_logado");
                 localStorage.removeItem("vli_dados_controlador");
                 atualizarBotaoLoginTopo();
@@ -322,7 +319,6 @@
             controladorLogado = true;
             dadosControladorLogado = encontrado;
 
-            // Salva o estado de login no navegador para persistir ao atualizar a página
             localStorage.setItem("vli_controlador_logado", "true");
             localStorage.setItem("vli_dados_controlador", JSON.stringify(encontrado));
 
@@ -373,7 +369,7 @@
 
         window.renderizarAtivas = function() {
             const container = document.getElementById('listaAtivas');
-            if(ldlAtivas.length > 0) {
+            if (ldlAtivas.length > 0) {
                 document.getElementById('secaoAtivas').style.display = "block";
                 
                 const agora = new Date();
@@ -392,17 +388,19 @@
                         }
                     }
 
-                    // Se esta LDL específica estiver com o checklist aberto, preservamos o HTML interno do container de botões para não zerar as marcações
-                    let conteudoBotaoHtml = '';
+                    // SE o checklist desta LDL estiver aberto, NÃO reescrevemos o bloco de botões para evitar zerar os cliques
                     if (ldlComChecklistAberto === l.id) {
-                        const containerBtnAtual = document.getElementById(`container-btn-${l.id}`);
-                        if (containerBtnAtual && containerBtnAtual.innerHTML.includes('check1_')) {
-                            conteudoBotaoHtml = containerBtnAtual.innerHTML;
-                        }
-                    }
-
-                    if (!conteudoBotaoHtml) {
-                        conteudoBotaoHtml = `<button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>`;
+                        return `
+                            <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}" id="card-item-${l.id}">
+                                ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
+                                <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                                ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
+                                <div id="container-btn-${l.id}">
+                                    <!-- Mantém exatamente o conteúdo atual do checklist aberto -->
+                                    ${document.getElementById(`container-btn-${l.id}`) ? document.getElementById(`container-btn-${l.id}`).innerHTML : ''}
+                                </div>
+                            </div>
+                        `;
                     }
 
                     return `
@@ -411,7 +409,7 @@
                             <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
                             ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
                             <div id="container-btn-${l.id}">
-                                ${conteudoBotaoHtml}
+                                <button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
                             </div>
                         </div>
                     `;
@@ -451,7 +449,6 @@
         };
 
         window.executarEncerramentoLDL = async function(id) {
-            // Verifica se todos os 6 checkboxes foram marcados
             const c1 = document.getElementById(`check1_${id}`).checked;
             const c2 = document.getElementById(`check2_${id}`).checked;
             const c3 = document.getElementById(`check3_${id}`).checked;
