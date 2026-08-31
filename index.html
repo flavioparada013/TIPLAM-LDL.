@@ -379,7 +379,7 @@
                     const containerBtn = document.getElementById(`container-btn-${l.id}`);
                     const estaComChecklistAberto = containerBtn && containerBtn.innerHTML.includes('check1_');
 
-                    // Se o checklist estiver aberto, preserva o card atual para não apagar o preenchimento
+                    // Se o checklist estiver aberto, preserva o card atual intacto na tela para não apagar o preenchimento
                     if (estaComChecklistAberto) {
                         return document.getElementById(`card-item-${l.id}`).outerHTML;
                     }
