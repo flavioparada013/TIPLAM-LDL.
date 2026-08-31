@@ -169,7 +169,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCRrXnA-sZh3x-1wcE4U1Njf_oEvsHqUjA",
@@ -196,6 +196,13 @@
         window.addEventListener('DOMContentLoaded', () => {
             atualizarBotaoLoginTopo();
         });
+
+        // Atualiza a tela automaticamente a cada 5 segundos para checar o horário limite das LDLs
+        setInterval(() => {
+            if (ldlAtivas.length > 0) {
+                renderizarAtivas();
+            }
+        }, 5000);
 
         function obterDataLocalISO() {
             const agora = new Date();
@@ -452,7 +459,6 @@
                 });
             }
 
-            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await deleteDoc(doc(db, "ativasVLI", id));
             alert(`LDL encerrada com sucesso por ${infoEncerrante}!`);
         };
@@ -559,7 +565,6 @@
                 ultimaLDL: novaLDL.data
             });
 
-            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await addDoc(collection(db, "ativasVLI"), novaLDL);
 
             const parametrosEmail = {
@@ -585,11 +590,13 @@
             
             alert("LDL Salva e e-mail enviado com sucesso!");
             
+            // Limpa os campos de preenchimento e retorna para a tela inicial
             document.getElementById('secaoPreenchimento').style.display = "none";
             document.getElementById('inputLocal').value = "";
             document.getElementById('inputAtividade').value = "";
             document.getElementById('inputHorarioDe').value = "";
             document.getElementById('inputHorarioAte').value = "";
+            voltarParaCadastro();
         };
 
         window.buscarLDLPorPeriodo = function() {
