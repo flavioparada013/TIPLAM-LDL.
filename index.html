@@ -169,7 +169,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, deleteDoc, addDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCRrXnA-sZh3x-1wcE4U1Njf_oEvsHqUjA",
@@ -188,18 +188,21 @@
         let ldlAtivas = [];
         let pessoaEncontrada = null;
 
+        // Recupera o login salvo no navegador ao atualizar a página
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
 
+        // Atualiza o botão do topo logo ao carregar caso já esteja logado
         window.addEventListener('DOMContentLoaded', () => {
             atualizarBotaoLoginTopo();
         });
 
+        // Atualiza a tela automaticamente a cada 30 segundos para checar o horário limite das LDLs
         setInterval(() => {
             if (ldlAtivas.length > 0) {
                 renderizarAtivas();
             }
-        }, 5000);
+        }, 30000);
 
         function obterDataLocalISO() {
             const agora = new Date();
@@ -226,6 +229,7 @@
             if (controladorLogado) {
                 controladorLogado = false;
                 dadosControladorLogado = null;
+                // Limpa a memória do navegador ao sair
                 localStorage.removeItem("vli_controlador_logado");
                 localStorage.removeItem("vli_dados_controlador");
                 atualizarBotaoLoginTopo();
@@ -317,6 +321,7 @@
             controladorLogado = true;
             dadosControladorLogado = encontrado;
 
+            // Salva o estado de login no navegador para persistir ao atualizar a página
             localStorage.setItem("vli_controlador_logado", "true");
             localStorage.setItem("vli_dados_controlador", JSON.stringify(encontrado));
 
@@ -375,15 +380,6 @@
                 const horaAtualMinutos = agora.getHours() * 60 + agora.getMinutes();
 
                 container.innerHTML = ldlAtivas.map((l) => {
-                    // Verifica se o checklist deste card específico já está aberto na tela
-                    const containerBtn = document.getElementById(`container-btn-${l.id}`);
-                    const estaComChecklistAberto = containerBtn && containerBtn.innerHTML.includes('check1_');
-
-                    // Se o checklist estiver aberto, preserva o card atual intacto na tela para não apagar o preenchimento
-                    if (estaComChecklistAberto) {
-                        return document.getElementById(`card-item-${l.id}`).outerHTML;
-                    }
-
                     let estaEstourado = false;
                     
                     if (l.data === dataHojeStr && l.horarioAte) {
@@ -429,6 +425,7 @@
         };
 
         window.executarEncerramentoLDL = async function(id) {
+            // Verifica se todos os 6 checkboxes foram marcados
             const c1 = document.getElementById(`check1_${id}`).checked;
             const c2 = document.getElementById(`check2_${id}`).checked;
             const c3 = document.getElementById(`check3_${id}`).checked;
@@ -450,18 +447,19 @@
             
             const ldlAlvo = ldlAtivas.find(l => l.id === id);
             if (ldlAlvo) {
-                for (let p of bancoDeDados) {
+                bancoDeDados.forEach(async p => {
                     if (p.historico) {
-                        const index = p.historico.findIndex(h => h.tipo === "Preenchimento" && h.num === ldlAlvo.num && h.data === ldlAlvo.data);
+                        const index = p.historico.findIndex(h => h.num === ldlAlvo.num && h.data === ldlAlvo.data);
                         if (index !== -1) {
                             p.historico[index].encerradoPor = infoEncerrante;
                             const docRef = doc(db, "bancoVLI", p.id);
                             await updateDoc(docRef, { historico: p.historico });
                         }
                     }
-                }
+                });
             }
 
+            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await deleteDoc(doc(db, "ativasVLI", id));
             alert(`LDL encerrada com sucesso por ${infoEncerrante}!`);
         };
@@ -568,6 +566,7 @@
                 ultimaLDL: novaLDL.data
             });
 
+            const { addDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await addDoc(collection(db, "ativasVLI"), novaLDL);
 
             const parametrosEmail = {
@@ -598,7 +597,6 @@
             document.getElementById('inputAtividade').value = "";
             document.getElementById('inputHorarioDe').value = "";
             document.getElementById('inputHorarioAte').value = "";
-            voltarParaCadastro();
         };
 
         window.buscarLDLPorPeriodo = function() {
