@@ -408,9 +408,10 @@
             document.getElementById('secaoResultadoLDLUnica').style.display = 'block';
 
             let htmlAbertura = `
-                <div id="pdfAberturaArea" style="background: white; padding: 15px;">
-                    <div style="border: 2px solid #004a99; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f9f9f9;">
-                        <h4 style="color: #004a99; margin-top: 0;">Dados da Abertura da LDL</h4>
+                <div style="background: #f4f4f9; padding: 20px; overflow-x: auto;">
+                    <div id="pdfAberturaArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #004a99; border-radius: 8px;">
+                        <h3 style="color: #004a99; text-align: center; margin-top: 0;">VLI LDL - Relatório de Abertura</h3>
+                        <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
                         <strong>Nº LDL:</strong> ${ldlEncontrada.num}<br>
                         <strong>Colaborador:</strong> ${ldlEncontrada.nomePessoa || ldlEncontrada.nome || '-'}<br>
                         <strong>Cargo:</strong> ${ldlEncontrada.cargoPessoa || ldlEncontrada.cargo || '-'}<br>
@@ -423,8 +424,8 @@
                         <strong>Data:</strong> ${ldlEncontrada.data || '-'}<br>
                         ${ldlEncontrada.observacaoLDL ? `<strong>Observação:</strong> ${ldlEncontrada.observacaoLDL}<br>` : ''}
 
-                        <h5 style="color: #004a99; margin-bottom: 5px; margin-top: 15px;">Verificações Prévias Obrigatórias:</h5>
-                        <ul style="padding-left: 15px; font-size: 13px; margin: 0;">
+                        <h4 style="color: #004a99; margin-bottom: 5px; margin-top: 15px;">Verificações Prévias Obrigatórias:</h4>
+                        <ul style="padding-left: 15px; font-size: 13px; margin: 0; line-height: 1.5;">
                             <li>A equipe solicitante foi treinada na LDL? <strong>${ldlEncontrada.perg1 || 'N/A'}</strong></li>
                             <li>O serviço a ser executado é em linha? <strong>${ldlEncontrada.perg2 || 'N/A'}</strong></li>
                             <li>O serviço a ser executado é na plataforma via? <strong>${ldlEncontrada.perg3 || 'N/A'}</strong></li>
@@ -439,19 +440,23 @@
                         </ul>
                     </div>
                 </div>
-                <button onclick="gerarPDFAbertura('${numLDL}')" style="background-color: #28a745; margin-bottom: 20px;">Salvar PDF (Abertura)</button>
+                <div style="text-align: center; margin: 15px 0;">
+                    <button onclick="gerarPDFAbertura('${numLDL}')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Abertura)</button>
+                </div>
             `;
 
             let htmlEncerramento = '';
             if (infoEncerramento && infoEncerramento.encerradoPor) {
                 htmlEncerramento = `
-                    <div id="pdfEncerramentoArea" style="background: white; padding: 15px;">
-                        <div style="border: 2px solid #28a745; border-radius: 8px; padding: 15px; background: #e9f7ef;">
-                            <h4 style="color: #28a745; margin-top: 0;">Detalhes do Encerramento</h4>
+                    <div style="background: #f4f4f9; padding: 20px; overflow-x: auto; margin-top: 20px;">
+                        <div id="pdfEncerramentoArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #28a745; border-radius: 8px;">
+                            <h3 style="color: #28a745; text-align: center; margin-top: 0;">VLI LDL - Relatório de Encerramento</h3>
+                            <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
+                            <strong>Nº LDL:</strong> ${numLDL}<br>
                             <strong>Encerrado por Controlador:</strong> ${infoEncerramento.encerradoPor}<br>
                             
-                            <h5 style="color: #28a745; margin-bottom: 5px; margin-top: 15px;">Confirmação dos Itens:</h5>
-                            <ul style="padding-left: 15px; font-size: 13px; margin: 0;">
+                            <h4 style="color: #28a745; margin-bottom: 5px; margin-top: 15px;">Confirmação dos Itens:</h4>
+                            <ul style="padding-left: 15px; font-size: 13px; margin: 0; line-height: 1.5;">
                                 <li>Manutenção foi concluída? <strong>${infoEncerramento.c1 || 'N/A'}</strong></li>
                                 <li>Ferramentas, materiais e equipamentos foram recolhidos? <strong>${infoEncerramento.c2 || 'N/A'}</strong></li>
                                 <li>A sinalização gráfica foi retirada? <strong>${infoEncerramento.c3 || 'N/A'}</strong></li>
@@ -463,11 +468,13 @@
                             <br><strong>Tipo de Restrição:</strong> ${infoEncerramento.tipoRestricao || 'Não'}<br>
                         </div>
                     </div>
-                    <button onclick="gerarPDFEncerramento('${numLDL}')" style="background-color: #28a745;">Salvar PDF (Encerramento)</button>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <button onclick="gerarPDFEncerramento('${numLDL}')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Encerramento)</button>
+                    </div>
                 `;
             } else {
                 htmlEncerramento = `
-                    <div style="border: 2px solid #dc3545; border-radius: 8px; padding: 15px; background: #f8d7da; color: #dc3545; font-weight: bold;">
+                    <div style="border: 2px solid #dc3545; border-radius: 8px; padding: 15px; background: #f8d7da; color: #dc3545; font-weight: bold; margin-top: 20px; text-align: center;">
                         Esta LDL ainda se encontra em aberto ou não possui registro de encerramento.
                     </div>
                 `;
@@ -479,10 +486,10 @@
         window.gerarPDFAbertura = function(num) {
             const elemento = document.getElementById('pdfAberturaArea');
             const opt = {
-                margin:       10,
+                margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Abertura.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(elemento).set(opt).save();
@@ -491,10 +498,10 @@
         window.gerarPDFEncerramento = function(num) {
             const elemento = document.getElementById('pdfEncerramentoArea');
             const opt = {
-                margin:       10,
+                margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Encerramento.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2 },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(elemento).set(opt).save();
