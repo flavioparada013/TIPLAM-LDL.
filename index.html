@@ -9,7 +9,7 @@
         .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
         h1 { color: #004a99; text-align: center; }
         .form-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
+        input[type="text"], input[type="password"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
         button { width: 100%; padding: 12px; background: #004a99; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .error-text { color: #dc3545; font-weight: bold; padding: 10px; border: 1px solid #dc3545; border-radius: 5px; background: #f8d7da; margin-bottom: 10px; }
         .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; }
@@ -27,7 +27,7 @@
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
-        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -55,7 +55,32 @@
             <input type="text" id="ctrlMatriculaCadastro" placeholder="Matrícula" maxlength="8">
             <input type="password" id="ctrlSenhaCadastro" placeholder="Senha">
             <button onclick="executarCadastroControlador()" style="background-color: #28a745;">Cadastrar</button>
+            
+            <!-- Novos Botões Solicitados -->
+            <button onclick="mostrarSecaoExcluirControlador()" style="background-color: #dc3545;">Excluir Controlador</button>
+            <button onclick="mostrarSecaoAlterarSenha()" style="background-color: #ffc107; color: #000;">Alterar senha</button>
+
             <button onclick="voltarAoPainelControlador()" style="background-color: #666;">Voltar</button>
+        </div>
+
+        <!-- Seção Excluir Controlador -->
+        <div id="secaoExcluirControlador">
+            <h3>Excluir Controlador</h3>
+            <div id="mensagemExcluirControlador"></div>
+            <input type="text" id="ctrlMatriculaExcluir" placeholder="Matrícula" maxlength="8">
+            <input type="password" id="ctrlSenhaExcluir" placeholder="Senha Master">
+            <button onclick="executarExclusaoControlador()" style="background-color: #dc3545;">Confirmar Exclusão</button>
+            <button onclick="mostrarSecaoCadastrarControlador()" style="background-color: #666;">Voltar</button>
+        </div>
+
+        <!-- Seção Alterar Senha -->
+        <div id="secaoAlterarSenha">
+            <h3>Alterar Senha</h3>
+            <div id="mensagemAlterarSenha"></div>
+            <input type="password" id="ctrlSenhaAntiga" placeholder="Digite a senha anterior">
+            <input type="password" id="ctrlSenhaNova" placeholder="Digite a nova senha">
+            <button onclick="executarAlterarSenha()" style="background-color: #28a745;">Confirmar Nova Senha</button>
+            <button onclick="mostrarSecaoCadastrarControlador()" style="background-color: #666;">Voltar</button>
         </div>
 
         <!-- Seção de Login de Controlador -->
@@ -135,7 +160,7 @@
         <div id="secaoPreenchimento">
             <h3>LDL</h3>
             <div id="mensagemPreenchimento"></div>
-            <input type="text" id="inputNumLDL" placeholder="Nº LDL" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+            <input type="text" id="inputNumLDL" placeholder="Nº LDL">
             <input type="text" id="inputControlador" placeholder="Controlador de Pátio" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
             <input type="text" id="inputLocal" placeholder="Local">
             <input type="text" id="inputAtividade" placeholder="Atividade">
@@ -145,6 +170,88 @@
                 <input type="time" id="inputHorarioAte" placeholder="Até" style="margin-bottom:0;">
             </div>
             <input type="date" id="dataAtualLDL" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+
+            <!-- Novas perguntas obrigatórias na abertura de LDL -->
+            <div style="background: #f8f9fa; padding: 12px; border: 1px solid #ccc; border-radius: 5px; margin-top: 10px; margin-bottom: 10px;">
+                <p style="font-weight: bold; color: #004a99; margin-top: 0; font-size: 14px;">Verificações Prévias Obrigatórias:</p>
+                
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - A equipe solicitante foi treinada na LDL?<br>
+                    <label><input type="radio" name="perg1" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg1" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - O serviço a ser executado é em linha?<br>
+                    <label><input type="radio" name="perg2" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg2" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - O serviço a ser executado é na plataforma via?<br>
+                    <label><input type="radio" name="perg3" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg3" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - O serviço a ser executado é no AMV?<br>
+                    <label><input type="radio" name="perg4" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg4" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - A via foi sinalizada com placas conforme o ROF?<br>
+                    <label><input type="radio" name="perg5" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg5" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - Para serviços fora da via, a área foi sinalizada?<br>
+                    <label><input type="radio" name="perg6" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg6" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - A comunicação foi gravada?<br>
+                    <label><input type="radio" name="perg7" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg7" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - A comunicação foi repetida na íntegra e cotejada pelo CCP/Estação?<br>
+                    <label><input type="radio" name="perg8" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg8" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - A comunicação foi repetida na íntegra e cotejada pelo responsável da manutenção?<br>
+                    <label><input type="radio" name="perg9" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg9" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - Foi efetuada a autorização via rádio?<br>
+                    <label><input type="radio" name="perg10" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg10" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - Foi efetuada a autorização pessoalmente, controlador com o responsável pela manutenção?<br>
+                    <label><input type="radio" name="perg11" value="Sim"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="perg11" value="Não"> Não</label>
+                </div>
+
+                <div style="margin-bottom: 8px; font-size: 13px;">
+                    - Observação:<br>
+                    <label><input type="radio" name="pergObs" value="Sim" onclick="toggleCampoObs(true)"> Sim</label> &nbsp;&nbsp;
+                    <label><input type="radio" name="pergObs" value="Não" onclick="toggleCampoObs(false)"> Não</label>
+                </div>
+
+                <div id="containerObsInput" class="hidden" style="margin-top: 5px;">
+                    <input type="text" id="inputObservacaoLDL" placeholder="Digite a observação...">
+                </div>
+            </div>
+
             <button onclick="salvarLDL()" style="background-color: #28a745;">Salvar</button>
         </div>
 
@@ -169,7 +276,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, setDoc, doc, onSnapshot, updateDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCRrXnA-sZh3x-1wcE4U1Njf_oEvsHqUjA",
@@ -187,16 +294,18 @@
         let controladoresCadastrados = [];
         let ldlAtivas = [];
         let pessoaEncontrada = null;
-        let ldlComChecklistAberto = null; // Guarda o ID da LDL com o checklist aberto
+        let ldlComChecklistAberto = null; 
 
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
+        
+        // Gerenciamento dinâmico da senha master
+        let senhaMasterAtual = localStorage.getItem("vli_senha_master") || "2030";
 
         window.addEventListener('DOMContentLoaded', () => {
             atualizarBotaoLoginTopo();
         });
 
-        // Verificação a cada 5 segundos (só atualiza se NÃO houver checklist aberto)
         setInterval(() => {
             if (ldlAtivas.length > 0 && !ldlComChecklistAberto) {
                 renderizarAtivas();
@@ -218,10 +327,81 @@
         window.mostrarSecaoCadastrarControlador = function() {
             document.getElementById('secaoCadastrarControlador').style.display = 'block';
             document.getElementById('secaoLoginControlador').style.display = 'none';
+            document.getElementById('secaoExcluirControlador').style.display = 'none';
+            document.getElementById('secaoAlterarSenha').style.display = 'none';
             document.getElementById('ctrlNomeCadastro').value = '';
             document.getElementById('ctrlMatriculaCadastro').value = '';
             document.getElementById('ctrlSenhaCadastro').value = '';
             document.getElementById('mensagemCadastrarControlador').innerHTML = '';
+        };
+
+        window.mostrarSecaoExcluirControlador = function() {
+            document.getElementById('secaoCadastrarControlador').style.display = 'none';
+            document.getElementById('secaoExcluirControlador').style.display = 'block';
+            document.getElementById('ctrlMatriculaExcluir').value = '';
+            document.getElementById('ctrlSenhaExcluir').value = '';
+            document.getElementById('mensagemExcluirControlador').innerHTML = '';
+        };
+
+        window.mostrarSecaoAlterarSenha = function() {
+            document.getElementById('secaoCadastrarControlador').style.display = 'none';
+            document.getElementById('secaoAlterarSenha').style.display = 'block';
+            document.getElementById('ctrlSenhaAntiga').value = '';
+            document.getElementById('ctrlSenhaNova').value = '';
+            document.getElementById('mensagemAlterarSenha').innerHTML = '';
+        };
+
+        window.executarExclusaoControlador = async function() {
+            const matricula = document.getElementById('ctrlMatriculaExcluir').value.trim();
+            const senha = document.getElementById('ctrlSenhaExcluir').value;
+            const msg = document.getElementById('mensagemExcluirControlador');
+
+            if (!matricula) {
+                msg.innerHTML = `<div class="error-text">Preencha a Matrícula.</div>`;
+                return;
+            }
+
+            if (senha !== senhaMasterAtual) {
+                msg.innerHTML = `<div class="error-text">Senha master incorreta!</div>`;
+                return;
+            }
+
+            const encontrado = controladoresCadastrados.find(c => c.matricula === matricula);
+            if (!encontrado) {
+                msg.innerHTML = `<div class="error-text">Controlador não encontrado com esta matrícula.</div>`;
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, "controladoresVLI", encontrado.id));
+                msg.innerHTML = "";
+                alert("Controlador excluído com sucesso!");
+                mostrarSecaoCadastrarControlador();
+            } catch (error) {
+                msg.innerHTML = `<div class="error-text">Erro ao excluir controlador.</div>`;
+            }
+        };
+
+        window.executarAlterarSenha = function() {
+            const senhaAntiga = document.getElementById('ctrlSenhaAntiga').value;
+            const senhaNova = document.getElementById('ctrlSenhaNova').value;
+            const msg = document.getElementById('mensagemAlterarSenha');
+
+            if (senhaAntiga !== senhaMasterAtual) {
+                msg.innerHTML = `<div class="error-text">Senha anterior incorreta!</div>`;
+                return;
+            }
+
+            if (!senhaNova || senhaNova.trim() === "") {
+                msg.innerHTML = `<div class="error-text">Digite a nova senha válida.</div>`;
+                return;
+            }
+
+            senhaMasterAtual = senhaNova.trim();
+            localStorage.setItem("vli_senha_master", senhaMasterAtual);
+            msg.innerHTML = "";
+            alert("Senha alterada com sucesso!");
+            mostrarSecaoCadastrarControlador();
         };
 
         window.acaoTopoLogin = function() {
@@ -242,6 +422,8 @@
         window.mostrarSecaoLogin = function() {
             document.getElementById('secaoLoginControlador').style.display = 'block';
             document.getElementById('secaoCadastrarControlador').style.display = 'none';
+            document.getElementById('secaoExcluirControlador').style.display = 'none';
+            document.getElementById('secaoAlterarSenha').style.display = 'none';
             document.getElementById('ctrlMatriculaLogin').value = '';
             document.getElementById('ctrlSenhaLogin').value = '';
             document.getElementById('mensagemLoginControlador').innerHTML = '';
@@ -250,6 +432,8 @@
         window.voltarAoPainelControlador = function() {
             document.getElementById('secaoCadastrarControlador').style.display = 'none';
             document.getElementById('secaoLoginControlador').style.display = 'none';
+            document.getElementById('secaoExcluirControlador').style.display = 'none';
+            document.getElementById('secaoAlterarSenha').style.display = 'none';
         };
 
         function atualizarBotaoLoginTopo() {
@@ -279,8 +463,8 @@
                 return;
             }
 
-            if (senha !== "2030") {
-                msg.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
+            if (senha !== senhaMasterAtual) {
+                msg.innerHTML = `<div class="error-text">Senha master incorreta!</div>`;
                 return;
             }
 
@@ -364,14 +548,13 @@
             snapshot.forEach((docSnap) => {
                 ldlAtivas.push({ id: docSnap.id, ...docSnap.data() });
             });
-            // Se houver um checklist aberto, não redesenha para não apagar o preenchimento do usuário
             if (!ldlComChecklistAberto) {
                 renderizarAtivas();
             }
         });
 
         window.renderizarAtivas = function() {
-            if (ldlComChecklistAberto) return; // Bloqueia qualquer renderização automática se estiver preenchendo o checklist
+            if (ldlComChecklistAberto) return;
 
             const container = document.getElementById('listaAtivas');
             if (ldlAtivas.length > 0) {
@@ -397,6 +580,7 @@
                         <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}" id="card-item-${l.id}">
                             ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
                             <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                            ${l.observacaoLDL ? `<br><strong>Observação:</strong> ${l.observacaoLDL}` : ''}
                             ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
                             <div id="container-btn-${l.id}">
                                 <button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
@@ -416,39 +600,102 @@
                 return;
             }
 
-            ldlComChecklistAberto = id; // Trava as atualizações automáticas
+            ldlComChecklistAberto = id;
             const containerBtn = document.getElementById(`container-btn-${id}`);
             containerBtn.innerHTML = `
                 <div style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #dc3545; border-radius: 5px; color: #333;">
                     <p style="font-weight: bold; margin-top: 0; color: #004a99;">Confirme os itens abaixo:</p>
-                    <label style="display: block; margin-bottom: 8px; font-size: 14px;">- Manutenção foi concluída?<br><input type="checkbox" id="check1_${id}"></label>
-                    <label style="display: block; margin-bottom: 8px; font-size: 14px;">- Ferramentas, materiais e equipamentos foram recolhidos?<br><input type="checkbox" id="check2_${id}"></label>
-                    <label style="display: block; margin-bottom: 8px; font-size: 14px;">- A sinalização gráfica foi retirada?<br><input type="checkbox" id="check3_${id}"></label>
-                    <label style="display: block; margin-bottom: 8px; font-size: 14px;">- A área não coloca em risco a livre circulação de pessoas?<br><input type="checkbox" id="check4_${id}"></label>
-                    <label style="display: block; margin-bottom: 8px; font-size: 14px;">- A via não coloca em risco a circulação de trens?<br><input type="checkbox" id="check5_${id}"></label>
-                    <label style="display: block; margin-bottom: 12px; font-size: 14px;">- Circulação normal?<br><input type="checkbox" id="check6_${id}"></label>
+                    
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - Manutenção foi concluída?<br>
+                        <label><input type="radio" name="c1_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c1_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - Ferramentas, materiais e equipamentos foram recolhidos?<br>
+                        <label><input type="radio" name="c2_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c2_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - A sinalização gráfica foi retirada?<br>
+                        <label><input type="radio" name="c3_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c3_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - A área não coloca em risco a livre circulação de pessoas?<br>
+                        <label><input type="radio" name="c4_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c4_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - A via não coloca em risco a circulação de trens?<br>
+                        <label><input type="radio" name="c5_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c5_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - Circulação normal?<br>
+                        <label><input type="radio" name="c6_${id}" value="Sim"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="c6_${id}" value="Não"> Não</label>
+                    </div>
+
+                    <div style="margin-bottom: 8px; font-size: 13px;">
+                        - Há Alguma restrição?<br>
+                        <label><input type="radio" name="cRest_${id}" value="Sim" onclick="toggleRestricaoEncerramento('${id}', true)"> Sim</label> &nbsp;&nbsp;
+                        <label><input type="radio" name="cRest_${id}" value="Não" onclick="toggleRestricaoEncerramento('${id}', false)"> Não</label>
+                    </div>
+
+                    <div id="containerRestricao_${id}" class="hidden" style="margin-bottom: 8px;">
+                        <span style="font-size: 13px; font-weight: bold;">Tipo de Restrição:</span>
+                        <input type="text" id="inputTipoRestricao_${id}" placeholder="Descreva o tipo de restrição..." style="margin-top: 3px;">
+                    </div>
+
                     <button onclick="executarEncerramentoLDL('${id}')" style="background-color: #28a745; padding: 8px; width: 100%; margin-top: 5px;">Confirmar</button>
                     <button onclick="cancelarChecklistEncerramento()" style="background-color: #666; padding: 6px; width: 100%; margin-top: 5px;">Cancelar</button>
                 </div>
             `;
         };
 
+        window.toggleRestricaoEncerramento = function(id, mostrar) {
+            const container = document.getElementById(`containerRestricao_${id}`);
+            if (mostrar) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                document.getElementById(`inputTipoRestricao_${id}`).value = '';
+            }
+        };
+
         window.cancelarChecklistEncerramento = function() {
-            ldlComChecklistAberto = null; // Destrava as atualizações
+            ldlComChecklistAberto = null;
             renderizarAtivas();
         };
 
         window.executarEncerramentoLDL = async function(id) {
-            const c1 = document.getElementById(`check1_${id}`).checked;
-            const c2 = document.getElementById(`check2_${id}`).checked;
-            const c3 = document.getElementById(`check3_${id}`).checked;
-            const c4 = document.getElementById(`check4_${id}`).checked;
-            const c5 = document.getElementById(`check5_${id}`).checked;
-            const c6 = document.getElementById(`check6_${id}`).checked;
+            const r1 = document.querySelector(`input[name="c1_${id}"]:checked`);
+            const r2 = document.querySelector(`input[name="c2_${id}"]:checked`);
+            const r3 = document.querySelector(`input[name="c3_${id}"]:checked`);
+            const r4 = document.querySelector(`input[name="c4_${id}"]:checked`);
+            const r5 = document.querySelector(`input[name="c5_${id}"]:checked`);
+            const r6 = document.querySelector(`input[name="c6_${id}"]:checked`);
+            const rRest = document.querySelector(`input[name="cRest_${id}"]:checked`);
 
-            if (!c1 || !c2 || !c3 || !c4 || !c5 || !c6) {
-                alert("Você precisa marcar todas as confirmações do checklist para encerrar a LDL.");
+            if (!r1 || !r2 || !r3 || !r4 || !r5 || !r6 || !rRest) {
+                alert("Você precisa responder todas as perguntas do checklist para encerrar a LDL.");
                 return;
+            }
+
+            let tipoRestricaoTexto = "Não";
+            if (rRest.value === "Sim") {
+                const valRest = document.getElementById(`inputTipoRestricao_${id}`).value.trim();
+                if (!valRest) {
+                    alert("Por favor, preencha o Tipo de Restrição.");
+                    return;
+                }
+                tipoRestricaoTexto = valRest;
             }
 
             if (!controladorLogado || !dadosControladorLogado) {
@@ -456,7 +703,7 @@
                 return;
             }
 
-            ldlComChecklistAberto = null; // Destrava as atualizações
+            ldlComChecklistAberto = null;
             const infoEncerrante = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
             
             const ldlAlvo = ldlAtivas.find(l => l.id === id);
@@ -466,6 +713,7 @@
                         const index = p.historico.findIndex(h => h.num === ldlAlvo.num && h.data === ldlAlvo.data);
                         if (index !== -1) {
                             p.historico[index].encerradoPor = infoEncerrante;
+                            p.historico[index].tipoRestricao = tipoRestricaoTexto;
                             const docRef = doc(db, "bancoVLI", p.id);
                             await updateDoc(docRef, { historico: p.historico });
                         }
@@ -473,39 +721,19 @@
                 });
             }
 
-            const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js");
             await deleteDoc(doc(db, "ativasVLI", id));
             alert(`LDL encerrada com sucesso por ${infoEncerrante}!`);
         };
 
-        function calcularProximoNumeroLDL() {
-            const dataHoje = obterDataLocalISO();
-            let maiorNumero = 0;
-
-            ldlAtivas.forEach(l => {
-                if (l.data === dataHoje && l.num) {
-                    const numParsed = parseInt(l.num, 10);
-                    if (!isNaN(numParsed) && numParsed > maiorNumero) {
-                        maiorNumero = numParsed;
-                    }
-                }
-            });
-
-            bancoDeDados.forEach(p => {
-                if (p.historico) {
-                    p.historico.forEach(h => {
-                        if (h.data === dataHoje && h.num) {
-                            const numParsed = parseInt(h.num, 10);
-                            if (!isNaN(numParsed) && numParsed > maiorNumero) {
-                                maiorNumero = numParsed;
-                            }
-                        }
-                    });
-                }
-            });
-
-            return String(maiorNumero + 1).padStart(3, '0');
-        }
+        window.toggleCampoObs = function(mostrar) {
+            const container = document.getElementById('containerObsInput');
+            if (mostrar) {
+                container.classList.remove('hidden');
+            } else {
+                container.classList.add('hidden');
+                document.getElementById('inputObservacaoLDL').value = '';
+            }
+        };
 
         window.salvarLDL = async function() {
             if (!controladorLogado || !dadosControladorLogado) {
@@ -518,6 +746,34 @@
             const dataVal = obterDataLocalISO();
             document.getElementById('dataAtualLDL').value = dataVal;
             const msgErro = document.getElementById('mensagemPreenchimento');
+
+            if (!numVal) {
+                msgErro.innerHTML = `<div class="error-text">Erro: Preencha o número da LDL!</div>`;
+                return;
+            }
+
+            for (let i = 1; i <= 11; i++) {
+                const resp = document.querySelector(`input[name="perg${i}"]:checked`);
+                if (!resp) {
+                    msgErro.innerHTML = `<div class="error-text">Erro: Responda todas as perguntas obrigatórias de verificação prévia!</div>`;
+                    return;
+                }
+            }
+
+            const respObs = document.querySelector(`input[name="pergObs"]:checked`);
+            if (!respObs) {
+                msgErro.innerHTML = `<div class="error-text">Erro: Responda a pergunta de Observação!</div>`;
+                return;
+            }
+
+            let observacaoTexto = "";
+            if (respObs.value === "Sim") {
+                observacaoTexto = document.getElementById('inputObservacaoLDL').value.trim();
+                if (!observacaoTexto) {
+                    msgErro.innerHTML = `<div class="error-text">Erro: Preencha o campo de Observação.</div>`;
+                    return;
+                }
+            }
 
             if (!controladorVal) {
                 msgErro.innerHTML = `<div class="error-text">Erro: Controlador de Pátio não identificado!</div>`;
@@ -536,7 +792,6 @@
             }
 
             let numeroDuplicado = false;
-            
             if (ldlAtivas.some(l => l.num === numVal && l.data === dataVal)) {
                 numeroDuplicado = true;
             }
@@ -569,7 +824,8 @@
                 atividade: document.getElementById('inputAtividade').value,
                 horarioDe: document.getElementById('inputHorarioDe').value,
                 horarioAte: document.getElementById('inputHorarioAte').value,
-                data: dataVal 
+                data: dataVal,
+                observacaoLDL: observacaoTexto 
             };
             
             const novoHistoricoItem = { tipo: "Preenchimento", ...novaLDL };
@@ -607,10 +863,20 @@
             alert("LDL Salva e e-mail enviado com sucesso!");
             
             document.getElementById('secaoPreenchimento').style.display = "none";
+            document.getElementById('inputNumLDL').value = "";
             document.getElementById('inputLocal').value = "";
             document.getElementById('inputAtividade').value = "";
             document.getElementById('inputHorarioDe').value = "";
             document.getElementById('inputHorarioAte').value = "";
+            document.getElementById('inputObservacaoLDL').value = "";
+            document.getElementById('containerObsInput').classList.add('hidden');
+            
+            for(let i=1; i<=11; i++) {
+                const radios = document.querySelectorAll(`input[name="perg${i}"]`);
+                radios.forEach(r => r.checked = false);
+            }
+            const radiosObs = document.querySelectorAll(`input[name="pergObs"]`);
+            radiosObs.forEach(r => r.checked = false);
         };
 
         window.buscarLDLPorPeriodo = function() {
@@ -669,7 +935,9 @@
                         <strong>Atividade:</strong> ${item.atividade || '-'}<br>
                         ${item.horarioDe ? `<strong>Horário:</strong> ${item.horarioDe} às ${item.horarioAte || ''}<br>` : ''}
                         <strong>Data:</strong> ${item.data || '-'}<br>
+                        ${item.observacaoLDL ? `<strong>Observação:</strong> ${item.observacaoLDL}<br>` : ''}
                         ${item.encerradoPor ? `<strong>Encerrado por:</strong> ${item.encerradoPor}<br>` : ''}
+                        ${item.tipoRestricao ? `<strong>Tipo de Restrição:</strong> ${item.tipoRestricao}<br>` : ''}
                     </div>
                 `).join('');
             } else {
@@ -857,7 +1125,7 @@
             const senha = document.getElementById('senhaDesbloqueio').value;
             const msgDesc = document.getElementById('mensagemDesbloqueio');
 
-            if (senha !== "2030") {
+            if (senha !== senhaMasterAtual) {
                 msgDesc.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
                 return;
             }
@@ -881,7 +1149,7 @@
                 document.getElementById('secaoPreenchimento').style.display = "none";
             } else {
                 document.getElementById('secaoPreenchimento').style.display = "block";
-                document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
+                document.getElementById('inputNumLDL').value = "";
                 if (dadosControladorLogado) {
                     document.getElementById('inputControlador').value = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
                 } else {
@@ -891,6 +1159,8 @@
                 document.getElementById('inputAtividade').value = "";
                 document.getElementById('inputHorarioDe').value = "";
                 document.getElementById('inputHorarioAte').value = "";
+                document.getElementById('inputObservacaoLDL').value = "";
+                document.getElementById('containerObsInput').classList.add('hidden');
                 document.getElementById('dataAtualLDL').value = obterDataLocalISO();
                 document.getElementById('mensagem').innerHTML = "";
             }
@@ -906,7 +1176,7 @@
                 return;
             }
 
-            if(senhaDigitada !== "2030") {
+            if(senhaDigitada !== senhaMasterAtual) {
                 msgAuth.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
                 return;
             }
@@ -929,7 +1199,7 @@
             document.getElementById('secaoAutorizacao').style.display = "none";
             document.getElementById('mensagem').innerHTML = "";
             document.getElementById('secaoPreenchimento').style.display = "block";
-            document.getElementById('inputNumLDL').value = calcularProximoNumeroLDL();
+            document.getElementById('inputNumLDL').value = "";
             if (dadosControladorLogado) {
                 document.getElementById('inputControlador').value = `${dadosControladorLogado.nome} (Matrícula: ${dadosControladorLogado.matricula})`;
             }
@@ -952,8 +1222,10 @@
                     ${h.local ? `<strong>Local:</strong> ${h.local}<br>` : ''}
                     ${h.atividade ? `<strong>Atividade:</strong> ${h.atividade}<br>` : ''}
                     ${h.horarioDe ? `<strong>Horário:</strong> ${h.horarioDe} às ${h.horarioAte || ''}<br>` : ''}
+                    ${h.observacaoLDL ? `<strong>Observação:</strong> ${h.observacaoLDL}<br>` : ''}
                     ${h.resp ? `<strong>Responsável:</strong> ${h.resp}<br>` : ''}
                     ${h.encerradoPor ? `<strong>Encerrado por:</strong> ${h.encerradoPor}<br>` : ''}
+                    ${h.tipoRestricao ? `<strong>Tipo de Restrição (Encerramento):</strong> ${h.tipoRestricao}<br>` : ''}
                 </div>
             `).join('');
         };
@@ -969,7 +1241,6 @@
             const matricula = document.getElementById('novaMatricula').value.trim();
             const cpf = document.getElementById('novoCpf').value.trim();
             const dataCadastro = obterDataLocalISO();
-            document.getElementById('novaDataCadastro').value, dataCadastro;
             const msgErro = document.getElementById('mensagemCadastro');
 
             if (!nome || !cargo || (!matricula && !cpf)) {
