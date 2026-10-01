@@ -409,7 +409,7 @@
 
             let htmlAbertura = `
                 <div style="background: #f4f4f9; padding: 20px; overflow-x: auto;">
-                    <div id="pdfAberturaArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #004a99; border-radius: 8px;">
+                    <div id="pdfAberturaArea" style="width: 100%; max-width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #004a99; border-radius: 8px;">
                         <h3 style="color: #004a99; text-align: center; margin-top: 0;">VLI LDL - Relatório de Abertura</h3>
                         <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
                         <strong>Nº LDL:</strong> ${ldlEncontrada.num}<br>
@@ -449,7 +449,7 @@
             if (infoEncerramento && infoEncerramento.encerradoPor) {
                 htmlEncerramento = `
                     <div style="background: #f4f4f9; padding: 20px; overflow-x: auto; margin-top: 20px;">
-                        <div id="pdfEncerramentoArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #28a745; border-radius: 8px;">
+                        <div id="pdfEncerramentoArea" style="width: 100%; max-width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #28a745; border-radius: 8px;">
                             <h3 style="color: #28a745; text-align: center; margin-top: 0;">VLI LDL - Relatório de Encerramento</h3>
                             <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
                             <strong>Nº LDL:</strong> ${numLDL}<br>
@@ -485,11 +485,12 @@
 
         window.gerarPDFAbertura = function(num) {
             const elemento = document.getElementById('pdfAberturaArea');
+            if (!elemento) return;
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Abertura.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(elemento).set(opt).save();
@@ -497,11 +498,12 @@
 
         window.gerarPDFEncerramento = function(num) {
             const elemento = document.getElementById('pdfEncerramentoArea');
+            if (!elemento) return;
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Encerramento.pdf`,
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().from(elemento).set(opt).save();
