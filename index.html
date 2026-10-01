@@ -28,11 +28,31 @@
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
         #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha, #secaoConsultarLDLNav, #secaoResultadoLDLUnica { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; box-sizing: border-box; }
+
+        /* Estilo específico para impressão / Salvar como PDF */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #secaoResultadoLDLUnica, #secaoResultadoLDLUnica * {
+                visibility: visible;
+            }
+            #secaoResultadoLDLUnica {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                border: none !important;
+                margin: 0;
+                padding: 0;
+            }
+            .nao-imprimir {
+                display: none !important;
+            }
+        }
     </style>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-    <!-- SDK html2pdf para exportar PDFs -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="text/javascript">
         (function() {
             emailjs.init("4fRKHbs_drqHrzrkH");
@@ -42,18 +62,18 @@
 <body>
     <div class="container">
         <!-- Botões no Topo -->
-        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 15px;" class="nao-imprimir">
             <button id="topoBtnLogin" onclick="acaoTopoLogin()" style="width: auto; padding: 6px 12px; background-color: #6c757d; margin-top:0;">Login</button>
             <button id="topoBtnCadastrarControlador" onclick="mostrarSecaoCadastrarControlador()" style="width: auto; padding: 6px 12px; background-color: #28a745; margin-top:0;">Cadastrar Controlador</button>
         </div>
 
         <!-- Botão Consultar LDL logo abaixo do Cadastrar Controlador -->
-        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;" class="nao-imprimir">
             <button onclick="toggleSecaoConsultarLDLNav()" style="width: auto; padding: 6px 12px; background-color: #17a2b8; margin-top:0;">Consultar LDL</button>
         </div>
 
         <!-- Seção de Consulta Direta de LDL por Senha Master -->
-        <div id="secaoConsultarLDLNav">
+        <div id="secaoConsultarLDLNav" class="nao-imprimir">
             <h3>Consultar LDL Específica</h3>
             <div id="mensagemConsultarLDLNav"></div>
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
@@ -72,13 +92,16 @@
         <div id="secaoResultadoLDLUnica">
             <h3>Detalhes da LDL</h3>
             <div id="conteudoLDLUnica"></div>
-            <button onclick="voltarAoPainelControlador()" style="background-color: #666; margin-top: 15px;">Voltar</button>
+            <div class="nao-imprimir" style="text-align: center; margin-top: 15px;">
+                <button onclick="window.print()" style="background-color: #28a745; width: auto; padding: 10px 20px; margin-right: 10px;">Salvar / Baixar PDF</button>
+                <button onclick="voltarAoPainelControlador()" style="background-color: #666; width: auto; padding: 10px 20px;">Voltar</button>
+            </div>
         </div>
 
-        <h1>VLI LDL</h1>
+        <h1 class="nao-imprimir">VLI LDL</h1>
 
         <!-- Seção de Cadastro de Controlador -->
-        <div id="secaoCadastrarControlador">
+        <div id="secaoCadastrarControlador" class="nao-imprimir">
             <h3>Cadastrar Controlador</h3>
             <div id="mensagemCadastrarControlador"></div>
             <input type="text" id="ctrlNomeCadastro" placeholder="Nome">
@@ -93,7 +116,7 @@
         </div>
 
         <!-- Seção Excluir Controlador -->
-        <div id="secaoExcluirControlador">
+        <div id="secaoExcluirControlador" class="nao-imprimir">
             <h3>Excluir Controlador</h3>
             <div id="mensagemExcluirControlador"></div>
             <input type="text" id="ctrlMatriculaExcluir" placeholder="Matrícula" maxlength="8">
@@ -103,7 +126,7 @@
         </div>
 
         <!-- Seção Alterar Senha -->
-        <div id="secaoAlterarSenha">
+        <div id="secaoAlterarSenha" class="nao-imprimir">
             <h3>Alterar Senha</h3>
             <div id="mensagemAlterarSenha"></div>
             <input type="password" id="ctrlSenhaAntiga" placeholder="Digite a senha anterior">
@@ -113,7 +136,7 @@
         </div>
 
         <!-- Seção de Login de Controlador -->
-        <div id="secaoLoginControlador">
+        <div id="secaoLoginControlador" class="nao-imprimir">
             <h3>Login Controlador</h3>
             <div id="mensagemLoginControlador"></div>
             <input type="text" id="ctrlMatriculaLogin" placeholder="Matrícula" maxlength="8">
@@ -122,12 +145,12 @@
             <button onclick="voltarAoPainelControlador()" style="background-color: #666;">Voltar</button>
         </div>
         
-        <div id="secaoAtivas">
+        <div id="secaoAtivas" class="nao-imprimir">
             <h3>LDLs Abertas</h3>
             <div id="listaAtivas"></div>
         </div>
         
-        <div id="areaConsulta">
+        <div id="areaConsulta" class="nao-imprimir">
             <div class="form-group">
                 <input type="text" id="buscaInput" placeholder="Matrícula ou CPF">
                 <button onclick="realizarBusca()">Consultar</button>
@@ -153,22 +176,22 @@
             <button id="btnVoltar" onclick="voltarParaCadastro()" style="background-color: #666; display: none;">Voltar ao Cadastro</button>
         </div>
         
-        <div id="mensagem"></div>
+        <div id="mensagem" class="nao-imprimir"></div>
         
-        <div id="secaoConfirmarBloqueio">
+        <div id="secaoConfirmarBloqueio" class="nao-imprimir">
             <h3>Confirmação de Bloqueio</h3>
             <p style="font-weight: bold; color: #dc3545;">Tem certeza que deseja Bloquear esse cadastro?</p>
             <button onclick="executarBloqueio()" style="background-color: #dc3545;">Confirmar Bloqueio</button>
         </div>
 
-        <div id="secaoDesbloqueio">
+        <div id="secaoDesbloqueio" class="nao-imprimir">
             <h3>Desbloquear Cadastro</h3>
             <input type="password" id="senhaDesbloqueio" placeholder="Senha">
             <div id="mensagemDesbloqueio"></div>
             <button onclick="executarDesbloqueio()" style="background-color: #28a745;">Desbloquear</button>
         </div>
         
-        <div id="secaoEdicaoCadastro">
+        <div id="secaoEdicaoCadastro" class="nao-imprimir">
             <h3>Editar Cadastro</h3>
             <div id="mensagemEdicao"></div>
             <input type="text" id="editNome" placeholder="Nome Completo">
@@ -178,7 +201,7 @@
             <button onclick="salvarEdicaoCadastro()" style="background-color: #28a745;">Salvar Alterações</button>
         </div>
 
-        <div id="secaoAutorizacao">
+        <div id="secaoAutorizacao" class="nao-imprimir">
             <h3>Autorização Especial</h3>
             <input type="text" id="nomeAutorizacao" placeholder="Nome">
             <input type="password" id="senhaAutorizacao" placeholder="Senha">
@@ -186,7 +209,7 @@
             <button onclick="autorizarAbertura()" style="background-color: #dc3545;">Autorizar Abertura</button>
         </div>
 
-        <div id="secaoPreenchimento">
+        <div id="secaoPreenchimento" class="nao-imprimir">
             <h3>LDL</h3>
             <div id="mensagemPreenchimento"></div>
             <input type="text" id="inputNumLDL" placeholder="Nº LDL">
@@ -284,14 +307,14 @@
             <button onclick="salvarLDL()" style="background-color: #28a745;">Salvar</button>
         </div>
 
-        <div id="secaoHistorico">
+        <div id="secaoHistorico" class="nao-imprimir">
             <h3>Histórico de LDL</h3>
             <div id="listaHistorico"></div>
         </div>
 
-        <hr id="linhaDivisoria">
+        <hr id="linhaDivisoria" class="nao-imprimir">
 
-        <div id="areaCadastro">
+        <div id="areaCadastro" class="nao-imprimir">
             <h2>Cadastro</h2>
             <div id="mensagemCadastro"></div>
             <input type="text" id="novoNome" placeholder="Nome Completo">
@@ -440,9 +463,6 @@
                         </ul>
                     </div>
                 </div>
-                <div style="text-align: center; margin: 15px 0;">
-                    <button onclick="gerarPdfRelatorio('pdfAberturaArea', 'LDL_${numLDL}_Abertura.pdf')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Abertura)</button>
-                </div>
             `;
 
             let htmlEncerramento = '';
@@ -468,9 +488,6 @@
                             <br><strong>Tipo de Restrição:</strong> ${infoEncerramento.tipoRestricao || 'Não'}<br>
                         </div>
                     </div>
-                    <div style="text-align: center; margin: 15px 0;">
-                        <button onclick="gerarPdfRelatorio('pdfEncerramentoArea', 'LDL_${numLDL}_Encerramento.pdf')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Encerramento)</button>
-                    </div>
                 `;
             } else {
                 htmlEncerramento = `
@@ -481,31 +498,6 @@
             }
 
             document.getElementById('conteudoLDLUnica').innerHTML = htmlAbertura + htmlEncerramento;
-        };
-
-        window.gerarPdfRelatorio = function(idElemento, nomeArquivo) {
-            const elemento = document.getElementById(idElemento);
-            if (!elemento) {
-                alert("Erro: Área do PDF não encontrada.");
-                return;
-            }
-
-            const opcoes = {
-                margin:       10,
-                filename:     nomeArquivo || 'relatorio.pdf',
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { 
-                    scale: 2, 
-                    useCORS: true, 
-                    letterRendering: true
-                },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            html2pdf().set(opcoes).from(elemento).save().catch(function (err) {
-                console.error("Erro ao gerar PDF:", err);
-                alert("Ocorreu um erro ao gerar o PDF.");
-            });
         };
 
         window.mostrarSecaoCadastrarControlador = function() {
