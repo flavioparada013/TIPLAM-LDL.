@@ -485,7 +485,10 @@
 
         window.gerarPDFAbertura = function(num) {
             const elemento = document.getElementById('pdfAberturaArea');
-            if (!elemento) return;
+            if (!elemento) {
+                alert("Erro: Área de abertura do PDF não encontrada.");
+                return;
+            }
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Abertura.pdf`,
@@ -493,12 +496,18 @@
                 html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(elemento).set(opt).save();
+            html2pdf().from(elemento).set(opt).save().catch(err => {
+                console.error("Erro ao gerar PDF de Abertura:", err);
+                alert("Ocorreu um erro ao gerar o PDF de Abertura.");
+            });
         };
 
         window.gerarPDFEncerramento = function(num) {
             const elemento = document.getElementById('pdfEncerramentoArea');
-            if (!elemento) return;
+            if (!elemento) {
+                alert("Erro: Área de encerramento do PDF não encontrada.");
+                return;
+            }
             const opt = {
                 margin:       [10, 10, 10, 10],
                 filename:     `LDL_${num}_Encerramento.pdf`,
@@ -506,7 +515,10 @@
                 html2canvas:  { scale: 2, useCORS: true, letterRendering: true, windowWidth: 800 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(elemento).set(opt).save();
+            html2pdf().from(elemento).set(opt).save().catch(err => {
+                console.error("Erro ao gerar PDF de Encerramento:", err);
+                alert("Ocorreu um erro ao gerar o PDF de Encerramento.");
+            });
         };
 
         window.mostrarSecaoCadastrarControlador = function() {
