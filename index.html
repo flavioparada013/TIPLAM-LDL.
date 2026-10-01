@@ -441,7 +441,7 @@
                     </div>
                 </div>
                 <div style="text-align: center; margin: 15px 0;">
-                    <button onclick="gerarPDFAbertura('${numLDL}')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Abertura)</button>
+                    <button onclick="gerarPdfRelatorio('pdfAberturaArea', 'LDL_${numLDL}_Abertura.pdf')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Abertura)</button>
                 </div>
             `;
 
@@ -469,7 +469,7 @@
                         </div>
                     </div>
                     <div style="text-align: center; margin: 15px 0;">
-                        <button onclick="gerarPDFEncerramento('${numLDL}')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Encerramento)</button>
+                        <button onclick="gerarPdfRelatorio('pdfEncerramentoArea', 'LDL_${numLDL}_Encerramento.pdf')" style="background-color: #28a745; width: auto; padding: 10px 20px;">Salvar PDF (Encerramento)</button>
                     </div>
                 `;
             } else {
@@ -483,41 +483,41 @@
             document.getElementById('conteudoLDLUnica').innerHTML = htmlAbertura + htmlEncerramento;
         };
 
-        window.gerarPDFAbertura = function(num) {
-            const elemento = document.getElementById('pdfAberturaArea');
-            if (!elemento) {
-                alert("Erro: Área de abertura do PDF não encontrada.");
+        window.gerarPdfRelatorio = function(idElemento, nomeArquivo) {
+            const elementoOriginal = document.getElementById(idElemento);
+            if (!elementoOriginal) {
+                alert("Erro: Área do PDF não encontrada.");
                 return;
             }
-            const opt = {
-                margin:       10,
-                filename:     `LDL_${num}_Abertura.pdf`,
-                image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().from(elemento).set(opt).save().catch(err => {
-                console.error("Erro ao gerar PDF de Abertura:", err);
-                alert("Ocorreu um erro ao gerar o PDF de Abertura.");
-            });
-        };
 
-        window.gerarPDFEncerramento = function(num) {
-            const elemento = document.getElementById('pdfEncerramentoArea');
-            if (!elemento) {
-                alert("Erro: Área de encerramento do PDF não encontrada.");
-                return;
-            }
-            const opt = {
+            const elementoClonado = elementoOriginal.cloneNode(true);
+            elementoClonado.style.display = 'block';
+            elementoClonado.style.position = 'absolute';
+            elementoClonado.style.left = '-9999px';
+            elementoClonado.style.top = '0';
+            elementoClonado.style.width = '800px';
+
+            document.body.appendChild(elementoClonado);
+
+            const opcoes = {
                 margin:       10,
-                filename:     `LDL_${num}_Encerramento.pdf`,
+                filename:     nomeArquivo || 'relatorio.pdf',
                 image:        { type: 'jpeg', quality: 0.98 },
-                html2canvas:  { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+                html2canvas:  { 
+                    scale: 2, 
+                    useCORS: true, 
+                    scrollY: 0,
+                    windowWidth: 800
+                },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(elemento).set(opt).save().catch(err => {
-                console.error("Erro ao gerar PDF de Encerramento:", err);
-                alert("Ocorreu um erro ao gerar o PDF de Encerramento.");
+
+            html2pdf().set(opcoes).from(elementoClonado).save().then(function () {
+                document.body.removeChild(elementoClonado);
+            }).catch(function (err) {
+                console.error("Erro ao gerar PDF:", err);
+                document.body.removeChild(elementoClonado);
+                alert("Ocorreu um erro ao gerar o PDF.");
             });
         };
 
