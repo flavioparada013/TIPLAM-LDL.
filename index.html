@@ -27,10 +27,12 @@
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
-        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha, #secaoConsultarLDLNav, #secaoResultadoLDLUnica { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
     </style>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <!-- SDK html2pdf para exportar PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="text/javascript">
         (function() {
             emailjs.init("4fRKHbs_drqHrzrkH");
@@ -45,6 +47,34 @@
             <button id="topoBtnCadastrarControlador" onclick="mostrarSecaoCadastrarControlador()" style="width: auto; padding: 6px 12px; background-color: #28a745; margin-top:0;">Cadastrar Controlador</button>
         </div>
 
+        <!-- Botão Consultar LDL logo abaixo do Cadastrar Controlador -->
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 15px;">
+            <button onclick="toggleSecaoConsultarLDLNav()" style="width: auto; padding: 6px 12px; background-color: #17a2b8; margin-top:0;">Consultar LDL</button>
+        </div>
+
+        <!-- Seção de Consulta Direta de LDL por Senha Master -->
+        <div id="secaoConsultarLDLNav">
+            <h3>Consultar LDL Específica</h3>
+            <div id="mensagemConsultarLDLNav"></div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <label style="font-size: 13px; font-weight: bold; width: 140px;">Número da LDL:</label>
+                <input type="text" id="inputNumLDLConsultaNav" placeholder="Digite o nº" style="margin-bottom:0;">
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                <label style="font-size: 13px; font-weight: bold; width: 140px;">Senha:</label>
+                <input type="password" id="inputSenhaLDLConsultaNav" placeholder="Senha master" style="margin-bottom:0;">
+            </div>
+            <button onclick="executarBuscaLDLUnica()" style="background-color: #004a99;">Buscar</button>
+            <button onclick="document.getElementById('secaoConsultarLDLNav').style.display='none'" style="background-color: #666;">Fechar</button>
+        </div>
+
+        <!-- Nova Página / Seção de Resultado da LDL Única -->
+        <div id="secaoResultadoLDLUnica">
+            <h3>Detalhes da LDL</h3>
+            <div id="conteudoLDLUnica"></div>
+            <button onclick="voltarAoPainelControlador()" style="background-color: #666; margin-top: 15px;">Voltar</button>
+        </div>
+
         <h1>VLI LDL</h1>
 
         <!-- Seção de Cadastro de Controlador -->
@@ -56,7 +86,6 @@
             <input type="password" id="ctrlSenhaCadastro" placeholder="Senha">
             <button onclick="executarCadastroControlador()" style="background-color: #28a745;">Cadastrar</button>
             
-            <!-- Novos Botões Solicitados -->
             <button onclick="mostrarSecaoExcluirControlador()" style="background-color: #dc3545;">Excluir Controlador</button>
             <button onclick="mostrarSecaoAlterarSenha()" style="background-color: #ffc107; color: #000;">Alterar senha</button>
 
@@ -299,7 +328,6 @@
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
         
-        // Gerenciamento dinâmico da senha master
         let senhaMasterAtual = localStorage.getItem("vli_senha_master") || "2030";
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -323,6 +351,154 @@
         const dataHojeStr = obterDataLocalISO();
         document.getElementById('novaDataCadastro').value = dataHojeStr;
         document.getElementById('dataAtualLDL').value = dataHojeStr;
+
+        window.toggleSecaoConsultarLDLNav = function() {
+            const secao = document.getElementById('secaoConsultarLDLNav');
+            secao.style.display = secao.style.display === 'block' ? 'none' : 'block';
+            document.getElementById('inputNumLDLConsultaNav').value = '';
+            document.getElementById('inputSenhaLDLConsultaNav').value = '';
+            document.getElementById('mensagemConsultarLDLNav').innerHTML = '';
+        };
+
+        window.executarBuscaLDLUnica = function() {
+            const numLDL = document.getElementById('inputNumLDLConsultaNav').value.trim();
+            const senha = document.getElementById('inputSenhaLDLConsultaNav').value;
+            const msg = document.getElementById('mensagemConsultarLDLNav');
+
+            if (!numLDL) {
+                msg.innerHTML = `<div class="error-text">Digite o número da LDL.</div>`;
+                return;
+            }
+
+            if (senha !== senhaMasterAtual) {
+                msg.innerHTML = `<div class="error-text">Senha incorreta!</div>`;
+                return;
+            }
+
+            let ldlEncontrada = null;
+            let infoEncerramento = null;
+
+            for (let p of bancoDeDados) {
+                if (p.historico) {
+                    const item = p.historico.find(h => h.num === numLDL && h.tipo === "Preenchimento");
+                    if (item) {
+                        ldlEncontrada = { ...item, nomePessoa: p.nome, cargoPessoa: p.cargo, matriculaPessoa: p.matricula, cpfPessoa: p.cpf };
+                    }
+                    const itemEnc = p.historico.find(h => h.num === numLDL && h.encerradoPor);
+                    if (itemEnc) {
+                        infoEncerramento = itemEnc;
+                    }
+                }
+            }
+
+            if (!ldlEncontrada) {
+                const ldlAtiva = ldlAtivas.find(l => l.num === numLDL);
+                if (ldlAtiva) {
+                    ldlEncontrada = { ...ldlAtiva, nomePessoa: ldlAtiva.nome, cargoPessoa: ldlAtiva.cargo, matriculaPessoa: ldlAtiva.matricula, cpfPessoa: ldlAtiva.cpf };
+                }
+            }
+
+            if (!ldlEncontrada) {
+                msg.innerHTML = `<div class="error-text">LDL de número ${numLDL} não encontrada.</div>`;
+                return;
+            }
+
+            msg.innerHTML = "";
+            document.getElementById('secaoConsultarLDLNav').style.display = 'none';
+            document.getElementById('secaoResultadoLDLUnica').style.display = 'block';
+
+            let htmlAbertura = `
+                <div id="pdfAberturaArea" style="background: white; padding: 15px;">
+                    <div style="border: 2px solid #004a99; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: #f9f9f9;">
+                        <h4 style="color: #004a99; margin-top: 0;">Dados da Abertura da LDL</h4>
+                        <strong>Nº LDL:</strong> ${ldlEncontrada.num}<br>
+                        <strong>Colaborador:</strong> ${ldlEncontrada.nomePessoa || ldlEncontrada.nome || '-'}<br>
+                        <strong>Cargo:</strong> ${ldlEncontrada.cargoPessoa || ldlEncontrada.cargo || '-'}<br>
+                        <strong>Matrícula:</strong> ${ldlEncontrada.matriculaPessoa || ldlEncontrada.matricula || '-'}<br>
+                        <strong>CPF:</strong> ${ldlEncontrada.cpfPessoa || ldlEncontrada.cpf || '-'}<br>
+                        <strong>Controlador de Pátio:</strong> ${ldlEncontrada.controlador || '-'}<br>
+                        <strong>Local:</strong> ${ldlEncontrada.local || '-'}<br>
+                        <strong>Atividade:</strong> ${ldlEncontrada.atividade || '-'}<br>
+                        <strong>Horário:</strong> ${ldlEncontrada.horarioDe || ''} às ${ldlEncontrada.horarioAte || ''}<br>
+                        <strong>Data:</strong> ${ldlEncontrada.data || '-'}<br>
+                        ${ldlEncontrada.observacaoLDL ? `<strong>Observação:</strong> ${ldlEncontrada.observacaoLDL}<br>` : ''}
+
+                        <h5 style="color: #004a99; margin-bottom: 5px; margin-top: 15px;">Verificações Prévias Obrigatórias:</h5>
+                        <ul style="padding-left: 15px; font-size: 13px; margin: 0;">
+                            <li>A equipe solicitante foi treinada na LDL? <strong>${ldlEncontrada.perg1 || 'N/A'}</strong></li>
+                            <li>O serviço a ser executado é em linha? <strong>${ldlEncontrada.perg2 || 'N/A'}</strong></li>
+                            <li>O serviço a ser executado é na plataforma via? <strong>${ldlEncontrada.perg3 || 'N/A'}</strong></li>
+                            <li>O serviço a ser executado é no AMV? <strong>${ldlEncontrada.perg4 || 'N/A'}</strong></li>
+                            <li>A via foi sinalizada com placas conforme o ROF? <strong>${ldlEncontrada.perg5 || 'N/A'}</strong></li>
+                            <li>Para serviços fora da via, a área foi sinalizada? <strong>${ldlEncontrada.perg6 || 'N/A'}</strong></li>
+                            <li>A comunicação foi gravada? <strong>${ldlEncontrada.perg7 || 'N/A'}</strong></li>
+                            <li>A comunicação foi repetida na íntegra e cotejada pelo CCP/Estação? <strong>${ldlEncontrada.perg8 || 'N/A'}</strong></li>
+                            <li>A comunicação foi repetida na íntegra e cotejada pelo responsável da manutenção? <strong>${ldlEncontrada.perg9 || 'N/A'}</strong></li>
+                            <li>Foi efetuada a autorização via rádio? <strong>${ldlEncontrada.perg10 || 'N/A'}</strong></li>
+                            <li>Foi efetuada a autorização pessoalmente, controlador com o responsável? <strong>${ldlEncontrada.perg11 || 'N/A'}</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <button onclick="gerarPDFAbertura('${numLDL}')" style="background-color: #28a745; margin-bottom: 20px;">Salvar PDF (Abertura)</button>
+            `;
+
+            let htmlEncerramento = '';
+            if (infoEncerramento && infoEncerramento.encerradoPor) {
+                htmlEncerramento = `
+                    <div id="pdfEncerramentoArea" style="background: white; padding: 15px;">
+                        <div style="border: 2px solid #28a745; border-radius: 8px; padding: 15px; background: #e9f7ef;">
+                            <h4 style="color: #28a745; margin-top: 0;">Detalhes do Encerramento</h4>
+                            <strong>Encerrado por Controlador:</strong> ${infoEncerramento.encerradoPor}<br>
+                            
+                            <h5 style="color: #28a745; margin-bottom: 5px; margin-top: 15px;">Confirmação dos Itens:</h5>
+                            <ul style="padding-left: 15px; font-size: 13px; margin: 0;">
+                                <li>Manutenção foi concluída? <strong>${infoEncerramento.c1 || 'N/A'}</strong></li>
+                                <li>Ferramentas, materiais e equipamentos foram recolhidos? <strong>${infoEncerramento.c2 || 'N/A'}</strong></li>
+                                <li>A sinalização gráfica foi retirada? <strong>${infoEncerramento.c3 || 'N/A'}</strong></li>
+                                <li>A área não coloca em risco a livre circulação de pessoas? <strong>${infoEncerramento.c4 || 'N/A'}</strong></li>
+                                <li>A via não coloca em risco a circulação de trens? <strong>${infoEncerramento.c5 || 'N/A'}</strong></li>
+                                <li>Circulação normal? <strong>${infoEncerramento.c6 || 'N/A'}</strong></li>
+                                <li>Há alguma restrição? <strong>${infoEncerramento.cRest || 'N/A'}</strong></li>
+                            </ul>
+                            <br><strong>Tipo de Restrição:</strong> ${infoEncerramento.tipoRestricao || 'Não'}<br>
+                        </div>
+                    </div>
+                    <button onclick="gerarPDFEncerramento('${numLDL}')" style="background-color: #28a745;">Salvar PDF (Encerramento)</button>
+                `;
+            } else {
+                htmlEncerramento = `
+                    <div style="border: 2px solid #dc3545; border-radius: 8px; padding: 15px; background: #f8d7da; color: #dc3545; font-weight: bold;">
+                        Esta LDL ainda se encontra em aberto ou não possui registro de encerramento.
+                    </div>
+                `;
+            }
+
+            document.getElementById('conteudoLDLUnica').innerHTML = htmlAbertura + htmlEncerramento;
+        };
+
+        window.gerarPDFAbertura = function(num) {
+            const elemento = document.getElementById('pdfAberturaArea');
+            const opt = {
+                margin:       10,
+                filename:     `LDL_${num}_Abertura.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(elemento).set(opt).save();
+        };
+
+        window.gerarPDFEncerramento = function(num) {
+            const elemento = document.getElementById('pdfEncerramentoArea');
+            const opt = {
+                margin:       10,
+                filename:     `LDL_${num}_Encerramento.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(elemento).set(opt).save();
+        };
 
         window.mostrarSecaoCadastrarControlador = function() {
             document.getElementById('secaoCadastrarControlador').style.display = 'block';
@@ -434,6 +610,7 @@
             document.getElementById('secaoLoginControlador').style.display = 'none';
             document.getElementById('secaoExcluirControlador').style.display = 'none';
             document.getElementById('secaoAlterarSenha').style.display = 'none';
+            document.getElementById('secaoResultadoLDLUnica').style.display = 'none';
         };
 
         function atualizarBotaoLoginTopo() {
@@ -713,6 +890,13 @@
                         const index = p.historico.findIndex(h => h.num === ldlAlvo.num && h.data === ldlAlvo.data);
                         if (index !== -1) {
                             p.historico[index].encerradoPor = infoEncerrante;
+                            p.historico[index].c1 = r1.value;
+                            p.historico[index].c2 = r2.value;
+                            p.historico[index].c3 = r3.value;
+                            p.historico[index].c4 = r4.value;
+                            p.historico[index].c5 = r5.value;
+                            p.historico[index].c6 = r6.value;
+                            p.historico[index].cRest = rRest.value;
                             p.historico[index].tipoRestricao = tipoRestricaoTexto;
                             const docRef = doc(db, "bancoVLI", p.id);
                             await updateDoc(docRef, { historico: p.historico });
@@ -752,12 +936,14 @@
                 return;
             }
 
+            let respPergs = {};
             for (let i = 1; i <= 11; i++) {
                 const resp = document.querySelector(`input[name="perg${i}"]:checked`);
                 if (!resp) {
                     msgErro.innerHTML = `<div class="error-text">Erro: Responda todas as perguntas obrigatórias de verificação prévia!</div>`;
                     return;
                 }
+                respPergs[`perg${i}`] = resp.value;
             }
 
             const respObs = document.querySelector(`input[name="pergObs"]:checked`);
@@ -825,7 +1011,8 @@
                 horarioDe: document.getElementById('inputHorarioDe').value,
                 horarioAte: document.getElementById('inputHorarioAte').value,
                 data: dataVal,
-                observacaoLDL: observacaoTexto 
+                observacaoLDL: observacaoTexto,
+                ...respPergs
             };
             
             const novoHistoricoItem = { tipo: "Preenchimento", ...novaLDL };
