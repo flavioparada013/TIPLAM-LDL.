@@ -6,13 +6,13 @@
     <title>VLI LDL - Aplicação</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f9; padding: 20px; }
-        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative; box-sizing: border-box; }
         h1 { color: #004a99; text-align: center; }
         .form-group { margin-bottom: 15px; }
         input[type="text"], input[type="password"], input[type="date"], input[type="time"] { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 5px; margin-bottom: 5px; }
         button { width: 100%; padding: 12px; background: #004a99; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
         .error-text { color: #dc3545; font-weight: bold; padding: 10px; border: 1px solid #dc3545; border-radius: 5px; background: #f8d7da; margin-bottom: 10px; }
-        .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; }
+        .card-ldl { border: 1px solid #28a745; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #e9f7ef; box-sizing: border-box; }
         
         @keyframes piscarAlerta {
             0% { background-color: #e9f7ef; border-color: #28a745; }
@@ -27,7 +27,7 @@
         .hidden { display: none !important; }
         #btnVerificar, #btnHistorico, #btnEditarCadastro, #btnBloquearCadastro { display: none; }
         #secaoPreenchimento { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
-        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha, #secaoConsultarLDLNav, #secaoResultadoLDLUnica { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; }
+        #secaoAutorizacao, #secaoHistorico, #secaoAtivas, #secaoEdicaoCadastro, #secaoConfirmarBloqueio, #secaoDesbloqueio, #secaoCadastrarControlador, #secaoLoginControlador, #secaoExcluirControlador, #secaoAlterarSenha, #secaoConsultarLDLNav, #secaoResultadoLDLUnica { display: none; margin-top: 20px; padding: 15px; border: 2px solid #004a99; border-radius: 10px; box-sizing: border-box; }
     </style>
     <!-- SDK do EmailJS -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
@@ -408,8 +408,8 @@
             document.getElementById('secaoResultadoLDLUnica').style.display = 'block';
 
             let htmlAbertura = `
-                <div style="background: #f4f4f9; padding: 20px; overflow-x: auto;">
-                    <div id="pdfAberturaArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #004a99; border-radius: 8px;">
+                <div style="background: #f4f4f9; padding: 10px; overflow-x: auto; box-sizing: border-box;">
+                    <div id="pdfAberturaArea" style="width: 100%; max-width: 700px; margin: 0 auto; background: white; padding: 15px; border: 2px solid #004a99; border-radius: 8px; box-sizing: border-box; word-break: break-word;">
                         <h3 style="color: #004a99; text-align: center; margin-top: 0;">VLI LDL - Relatório de Abertura</h3>
                         <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
                         <strong>Nº LDL:</strong> ${ldlEncontrada.num}<br>
@@ -448,8 +448,8 @@
             let htmlEncerramento = '';
             if (infoEncerramento && infoEncerramento.encerradoPor) {
                 htmlEncerramento = `
-                    <div style="background: #f4f4f9; padding: 20px; overflow-x: auto; margin-top: 20px;">
-                        <div id="pdfEncerramentoArea" style="width: 700px; margin: 0 auto; background: white; padding: 20px; border: 2px solid #28a745; border-radius: 8px;">
+                    <div style="background: #f4f4f9; padding: 10px; overflow-x: auto; margin-top: 20px; box-sizing: border-box;">
+                        <div id="pdfEncerramentoArea" style="width: 100%; max-width: 700px; margin: 0 auto; background: white; padding: 15px; border: 2px solid #28a745; border-radius: 8px; box-sizing: border-box; word-break: break-word;">
                             <h3 style="color: #28a745; text-align: center; margin-top: 0;">VLI LDL - Relatório de Encerramento</h3>
                             <hr style="border: 0; border-top: 1px solid #ccc; margin-bottom: 15px;">
                             <strong>Nº LDL:</strong> ${numLDL}<br>
@@ -484,20 +484,11 @@
         };
 
         window.gerarPdfRelatorio = function(idElemento, nomeArquivo) {
-            const elementoOriginal = document.getElementById(idElemento);
-            if (!elementoOriginal) {
+            const elemento = document.getElementById(idElemento);
+            if (!elemento) {
                 alert("Erro: Área do PDF não encontrada.");
                 return;
             }
-
-            const elementoClonado = elementoOriginal.cloneNode(true);
-            elementoClonado.style.display = 'block';
-            elementoClonado.style.position = 'absolute';
-            elementoClonado.style.left = '-9999px';
-            elementoClonado.style.top = '0';
-            elementoClonado.style.width = '800px';
-
-            document.body.appendChild(elementoClonado);
 
             const opcoes = {
                 margin:       10,
@@ -506,17 +497,13 @@
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0,
-                    windowWidth: 800
+                    letterRendering: true
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opcoes).from(elementoClonado).save().then(function () {
-                document.body.removeChild(elementoClonado);
-            }).catch(function (err) {
+            html2pdf().set(opcoes).from(elemento).save().catch(function (err) {
                 console.error("Erro ao gerar PDF:", err);
-                document.body.removeChild(elementoClonado);
                 alert("Ocorreu um erro ao gerar o PDF.");
             });
         };
@@ -801,7 +788,7 @@
             ldlComChecklistAberto = id;
             const containerBtn = document.getElementById(`container-btn-${id}`);
             containerBtn.innerHTML = `
-                <div style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #dc3545; border-radius: 5px; color: #333;">
+                <div style="background: #fff; padding: 10px; margin-top: 10px; border: 1px solid #dc3545; border-radius: 5px; color: #333; box-sizing: border-box;">
                     <p style="font-weight: bold; margin-top: 0; color: #004a99;">Confirme os itens abaixo:</p>
                     
                     <div style="margin-bottom: 8px; font-size: 13px;">
@@ -1132,7 +1119,7 @@
                         Quantidade de LDLs abertas neste período: ${resultadosEncontrados.length}
                     </div>
                 ` + resultadosEncontrados.map(item => `
-                    <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #fff;">
+                    <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px; background: #fff; box-sizing: border-box;">
                         <strong>Nome:</strong> ${item.nome || '-'}<br>
                         <strong>Cargo/Função:</strong> ${item.cargo || '-'}<br>
                         ${item.matricula ? `<strong>Matrícula:</strong> ${item.matricula}<br>` : ''}
@@ -1422,7 +1409,7 @@
             secao.style.display = "block";
             const lista = document.getElementById('listaHistorico');
             lista.innerHTML = (pessoaEncontrada.historico || []).map(h => `
-                <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px;">
+                <div style="border: 1px solid #004a99; margin-bottom: 10px; padding: 10px; border-radius: 5px; box-sizing: border-box;">
                     <strong>Data:</strong> ${h.data}<br>
                     <strong>Tipo:</strong> ${h.tipo}<br>
                     ${h.num ? `<strong>Nº LDL:</strong> ${h.num}<br>` : ''}
