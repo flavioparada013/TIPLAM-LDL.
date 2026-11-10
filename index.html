@@ -210,7 +210,7 @@
         </div>
 
         <div id="secaoPreenchimento" class="nao-imprimir">
-            <h3>LDL</h3>
+            <h3 id="tituloSecaoPreenchimento">LDL</h3>
             <div id="mensagemPreenchimento"></div>
             <input type="text" id="inputNumLDL" placeholder="Nº LDL">
             <input type="text" id="inputControlador" placeholder="Controlador de Pátio" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
@@ -304,7 +304,8 @@
                 </div>
             </div>
 
-            <button onclick="salvarLDL()" style="background-color: #28a745;">Salvar</button>
+            <button id="btnSalvarLDL" onclick="salvarLDL()" style="background-color: #28a745;">Salvar</button>
+            <button id="btnCancelarEdicaoLDL" onclick="cancelarEdicaoLDL()" style="background-color: #666; display:none;">Cancelar</button>
         </div>
 
         <div id="secaoHistorico" class="nao-imprimir">
@@ -347,6 +348,9 @@
         let ldlAtivas = [];
         let pessoaEncontrada = null;
         let ldlComChecklistAberto = null; 
+
+        // Variável de controle para saber se estamos editando uma LDL ativa existente
+        let ldlSendoEditadaId = null; 
 
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
@@ -759,8 +763,9 @@
                             <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
                             ${l.observacaoLDL ? `<br><strong>Observação:</strong> ${l.observacaoLDL}` : ''}
                             ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
-                            <div id="container-btn-${l.id}">
-                                <button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 5px;">Encerrar LDL</button>
+                            <div id="container-btn-${l.id}" style="margin-top: 8px;">
+                                <button onclick="mostrarChecklistEncerramento('${l.id}')" style="background-color: #dc3545; padding: 6px; margin-top:0;">Encerrar LDL</button>
+                                <button onclick="abrirEdicaoLDL('${l.id}')" style="background-color: #ffc107; color: #000; padding: 6px; margin-top: 5px;">Editar LDL</button>
                             </div>
                         </div>
                     `;
@@ -769,6 +774,67 @@
                 ldlComChecklistAberto = null;
                 document.getElementById('secaoAtivas').style.display = "none";
             }
+        };
+
+        // Função para abrir os dados preenchidos da LDL para edição
+        window.abrirEdicaoLDL = function(id) {
+            if (!controladorLogado) {
+                alert("Acesso negado! Faça o Login para editar a LDL.");
+                return;
+            }
+
+            const ldlAlvo = ldlAtivas.find(l => l.id === id);
+            if (!ldlAlvo) return;
+
+            ldlSendoEditadaId = id;
+
+            // Ocultar a listagem de ativas e outras seções para focar na edição
+            document.getElementById('secaoAtivas').style.display = 'none';
+            document.getElementById('areaConsulta').style.display = 'none';
+            document.getElementById('secaoPreenchimento').style.display = 'block';
+            document.getElementById('tituloSecaoPreenchimento').innerText = "Editar LDL (Nº " + ldlAlvo.num + ")";
+            document.getElementById('btnSalvarLDL').innerText = "Salvar Alterações";
+            document.getElementById('btnCancelarEdicaoLDL').style.display = "block";
+
+            // Preencher campos com os dados existentes
+            document.getElementById('inputNumLDL').value = ldlAlvo.num || '';
+            document.getElementById('inputControlador').value = ldlAlvo.controlador || '';
+            document.getElementById('inputLocal').value = ldlAlvo.local || '';
+            document.getElementById('inputAtividade').value = ldlAlvo.atividade || '';
+            document.getElementById('inputHorarioDe').value = ldlAlvo.horarioDe || '';
+            document.getElementById('inputHorarioAte').value = ldlAlvo.horarioAte || '';
+            document.getElementById('dataAtualLDL').value = ldlAlvo.data || obterDataLocalISO();
+
+            // Restaurar perguntas prévias (perg1 a perg11)
+            for (let i = 1; i <= 11; i++) {
+                const valorSalvo = ldlAlvo[`perg` + i];
+                if (valorSalvo) {
+                    const radio = document.querySelector(`input[name="perg${i}"][value="${valorSalvo}"]`);
+                    if (radio) radio.checked = true;
+                }
+            }
+
+            // Restaurar observação
+            if (ldlAlvo.observacaoLDL && ldlAlvo.observacaoLDL.trim() !== "") {
+                const radioObsSim = document.querySelector(`input[name="pergObs"][value="Sim"]`);
+                if (radioObsSim) radioObsSim.checked = true;
+                toggleCampoObs(true);
+                document.getElementById('inputObservacaoLDL').value = ldlAlvo.observacaoLDL;
+            } else {
+                const radioObsNao = document.querySelector(`input[name="pergObs"][value="Não"]`);
+                if (radioObsNao) radioObsNao.checked = true;
+                toggleCampoObs(false);
+            }
+        };
+
+        window.cancelarEdicaoLDL = function() {
+            ldlSendoEditadaId = null;
+            document.getElementById('secaoPreenchimento').style.display = 'none';
+            document.getElementById('areaConsulta').style.display = 'block';
+            document.getElementById('tituloSecaoPreenchimento').innerText = "LDL";
+            document.getElementById('btnSalvarLDL').innerText = "Salvar";
+            document.getElementById('btnCancelarEdicaoLDL').style.display = "none";
+            renderizarAtivas();
         };
 
         window.mostrarChecklistEncerramento = function(id) {
@@ -928,7 +994,6 @@
             const numVal = document.getElementById('inputNumLDL').value.trim();
             const controladorVal = document.getElementById('inputControlador').value.trim();
             const dataVal = obterDataLocalISO();
-            document.getElementById('dataAtualLDL').value = dataVal;
             const msgErro = document.getElementById('mensagemPreenchimento');
 
             if (!numVal) {
@@ -966,6 +1031,43 @@
                 return;
             }
 
+            msgErro.innerHTML = "";
+
+            // Se estamos editando uma LDL ativa já existente
+            if (ldlSendoEditadaId) {
+                const ldlAntiga = ldlAtivas.find(l => l.id === ldlSendoEditadaId);
+                
+                const dadosAtualizados = {
+                    num: numVal,
+                    controlador: controladorVal,
+                    local: document.getElementById('inputLocal').value,
+                    atividade: document.getElementById('inputAtividade').value,
+                    horarioDe: document.getElementById('inputHorarioDe').value,
+                    horarioAte: document.getElementById('inputHorarioAte').value,
+                    observacaoLDL: observacaoTexto,
+                    ...respPergs
+                };
+
+                // Atualizar na coleção 'ativasVLI'
+                await updateDoc(doc(db, "ativasVLI", ldlSendoEditadaId), dadosAtualizados);
+
+                // Atualizar também no histórico do colaborador correspondente
+                bancoDeDados.forEach(async p => {
+                    if (p.historico) {
+                        const index = p.historico.findIndex(h => h.num === ldlAntiga.num && h.data === ldlAntiga.data && h.tipo === "Preenchimento");
+                        if (index !== -1) {
+                            p.historico[index] = { ...p.historico[index], ...dadosAtualizados };
+                            await updateDoc(doc(db, "bancoVLI", p.id), { historico: p.historico });
+                        }
+                    }
+                });
+
+                alert("Alterações salvas com sucesso!");
+                cancelarEdicaoLDL();
+                return;
+            }
+
+            // Fluxo normal de cadastro de nova LDL
             const jaTemLDLAtiva = ldlAtivas.some(l => {
                 const mesmaMatricula = pessoaEncontrada.matricula && l.matricula === pessoaEncontrada.matricula;
                 const mesmoCpf = pessoaEncontrada.cpf && l.cpf === pessoaEncontrada.cpf;
@@ -996,8 +1098,6 @@
                 msgErro.innerHTML = `<div class="error-text">Erro: Já existe uma LDL de número ${numVal} cadastrada nesta mesma data!</div>`;
                 return;
             }
-
-            msgErro.innerHTML = "";
 
             const novaLDL = { 
                 nome: pessoaEncontrada.nome,
@@ -1050,6 +1150,7 @@
             alert("LDL Salva e e-mail enviado com sucesso!");
             
             document.getElementById('secaoPreenchimento').style.display = "none";
+            document.getElementById('areaConsulta').style.display = "block";
             document.getElementById('inputNumLDL').value = "";
             document.getElementById('inputLocal').value = "";
             document.getElementById('inputAtividade').value = "";
@@ -1327,6 +1428,11 @@
         };
 
         window.abrirLDL = function() {
+            ldlSendoEditadaId = null;
+            document.getElementById('tituloSecaoPreenchimento').innerText = "LDL";
+            document.getElementById('btnSalvarLDL').innerText = "Salvar";
+            document.getElementById('btnCancelarEdicaoLDL').style.display = "none";
+
             const diff = (new Date() - new Date(pessoaEncontrada.ultimaLDL)) / (1000*60*60*24);
             if(diff > 90) {
                 document.getElementById('mensagem').innerHTML = `
