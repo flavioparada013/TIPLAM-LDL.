@@ -76,15 +76,17 @@
         <div id="secaoConsultarLDLNav" class="nao-imprimir">
             <h3>Consultar LDL Específica</h3>
             <div id="mensagemConsultarLDLNav"></div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: bold; width: 140px;">Número da LDL:</label>
-                <input type="text" id="inputNumLDLConsultaNav" placeholder="Digite o nº" style="margin-bottom:0;">
-            </div>
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                <label style="font-size: 13px; font-weight: bold; width: 140px;">Senha:</label>
-                <input type="password" id="inputSenhaLDLConsultaNav" placeholder="Senha master" style="margin-bottom:0;">
-            </div>
-            <button onclick="executarBuscaLDLUnica()" style="background-color: #004a99;">Buscar</button>
+            <form onsubmit="event.preventDefault(); executarBuscaLDLUnica();">
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <label style="font-size: 13px; font-weight: bold; width: 140px;">Número da LDL:</label>
+                    <input type="text" id="inputNumLDLConsultaNav" placeholder="Digite o nº" style="margin-bottom:0;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                    <label style="font-size: 13px; font-weight: bold; width: 140px;">Senha:</label>
+                    <input type="password" id="inputSenhaLDLConsultaNav" placeholder="Senha master" style="margin-bottom:0;">
+                </div>
+                <button type="submit" style="background-color: #004a99;">Buscar</button>
+            </form>
             <button onclick="document.getElementById('secaoConsultarLDLNav').style.display='none'" style="background-color: #666;">Fechar</button>
         </div>
 
@@ -104,10 +106,12 @@
         <div id="secaoCadastrarControlador" class="nao-imprimir">
             <h3>Cadastrar Controlador</h3>
             <div id="mensagemCadastrarControlador"></div>
-            <input type="text" id="ctrlNomeCadastro" placeholder="Nome">
-            <input type="text" id="ctrlMatriculaCadastro" placeholder="Matrícula" maxlength="8">
-            <input type="password" id="ctrlSenhaCadastro" placeholder="Senha">
-            <button onclick="executarCadastroControlador()" style="background-color: #28a745;">Cadastrar</button>
+            <form onsubmit="event.preventDefault(); executarCadastroControlador();">
+                <input type="text" id="ctrlNomeCadastro" placeholder="Nome">
+                <input type="text" id="ctrlMatriculaCadastro" placeholder="Matrícula" maxlength="8">
+                <input type="password" id="ctrlSenhaCadastro" placeholder="Senha">
+                <button type="submit" style="background-color: #28a745;">Cadastrar</button>
+            </form>
             
             <button onclick="mostrarSecaoExcluirControlador()" style="background-color: #dc3545;">Excluir Controlador</button>
             <button onclick="mostrarSecaoAlterarSenha()" style="background-color: #ffc107; color: #000;">Alterar senha</button>
@@ -119,9 +123,11 @@
         <div id="secaoExcluirControlador" class="nao-imprimir">
             <h3>Excluir Controlador</h3>
             <div id="mensagemExcluirControlador"></div>
-            <input type="text" id="ctrlMatriculaExcluir" placeholder="Matrícula" maxlength="8">
-            <input type="password" id="ctrlSenhaExcluir" placeholder="Senha Master">
-            <button onclick="executarExclusaoControlador()" style="background-color: #dc3545;">Confirmar Exclusão</button>
+            <form onsubmit="event.preventDefault(); executarExclusaoControlador();">
+                <input type="text" id="ctrlMatriculaExcluir" placeholder="Matrícula" maxlength="8">
+                <input type="password" id="ctrlSenhaExcluir" placeholder="Senha Master">
+                <button type="submit" style="background-color: #dc3545;">Confirmar Exclusão</button>
+            </form>
             <button onclick="mostrarSecaoCadastrarControlador()" style="background-color: #666;">Voltar</button>
         </div>
 
@@ -129,9 +135,11 @@
         <div id="secaoAlterarSenha" class="nao-imprimir">
             <h3>Alterar Senha</h3>
             <div id="mensagemAlterarSenha"></div>
-            <input type="password" id="ctrlSenhaAntiga" placeholder="Digite a senha anterior">
-            <input type="password" id="ctrlSenhaNova" placeholder="Digite a nova senha">
-            <button onclick="executarAlterarSenha()" style="background-color: #28a745;">Confirmar Nova Senha</button>
+            <form onsubmit="event.preventDefault(); executarAlterarSenha();">
+                <input type="password" id="ctrlSenhaAntiga" placeholder="Digite a senha anterior">
+                <input type="password" id="ctrlSenhaNova" placeholder="Digite a nova senha">
+                <button type="submit" style="background-color: #28a745;">Confirmar Nova Senha</button>
+            </form>
             <button onclick="mostrarSecaoCadastrarControlador()" style="background-color: #666;">Voltar</button>
         </div>
 
@@ -139,9 +147,11 @@
         <div id="secaoLoginControlador" class="nao-imprimir">
             <h3>Login Controlador</h3>
             <div id="mensagemLoginControlador"></div>
-            <input type="text" id="ctrlMatriculaLogin" placeholder="Matrícula" maxlength="8">
-            <input type="password" id="ctrlSenhaLogin" placeholder="Senha">
-            <button onclick="executarLoginControlador()" style="background-color: #004a99;">Entrar</button>
+            <form onsubmit="event.preventDefault(); executarLoginControlador();">
+                <input type="text" id="ctrlMatriculaLogin" placeholder="Matrícula" maxlength="8">
+                <input type="password" id="ctrlSenhaLogin" placeholder="Senha">
+                <button type="submit" style="background-color: #004a99;">Entrar</button>
+            </form>
             <button onclick="voltarAoPainelControlador()" style="background-color: #666;">Voltar</button>
         </div>
         
@@ -151,10 +161,10 @@
         </div>
         
         <div id="areaConsulta" class="nao-imprimir">
-            <div class="form-group">
+            <form class="form-group" onsubmit="event.preventDefault(); realizarBusca();">
                 <input type="text" id="buscaInput" placeholder="Matrícula ou CPF">
-                <button onclick="realizarBusca()">Consultar</button>
-            </div>
+                <button type="submit">Consultar</button>
+            </form>
             
             <div id="mensagemConsulta"></div>
             
@@ -186,27 +196,33 @@
 
         <div id="secaoDesbloqueio" class="nao-imprimir">
             <h3>Desbloquear Cadastro</h3>
-            <input type="password" id="senhaDesbloqueio" placeholder="Senha">
             <div id="mensagemDesbloqueio"></div>
-            <button onclick="executarDesbloqueio()" style="background-color: #28a745;">Desbloquear</button>
+            <form onsubmit="event.preventDefault(); executarDesbloqueio();">
+                <input type="password" id="senhaDesbloqueio" placeholder="Senha">
+                <button type="submit" style="background-color: #28a745;">Desbloquear</button>
+            </form>
         </div>
         
         <div id="secaoEdicaoCadastro" class="nao-imprimir">
             <h3>Editar Cadastro</h3>
             <div id="mensagemEdicao"></div>
-            <input type="text" id="editNome" placeholder="Nome Completo">
-            <input type="text" id="editCargo" placeholder="Cargo/Função">
-            <input type="text" id="editMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
-            <input type="text" id="editCpf" placeholder="CPF">
-            <button onclick="salvarEdicaoCadastro()" style="background-color: #28a745;">Salvar Alterações</button>
+            <form onsubmit="event.preventDefault(); salvarEdicaoCadastro();">
+                <input type="text" id="editNome" placeholder="Nome Completo">
+                <input type="text" id="editCargo" placeholder="Cargo/Função">
+                <input type="text" id="editMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
+                <input type="text" id="editCpf" placeholder="CPF">
+                <button type="submit" style="background-color: #28a745;">Salvar Alterações</button>
+            </form>
         </div>
 
         <div id="secaoAutorizacao" class="nao-imprimir">
             <h3>Autorização Especial</h3>
-            <input type="text" id="nomeAutorizacao" placeholder="Nome">
-            <input type="password" id="senhaAutorizacao" placeholder="Senha">
             <div id="mensagemAutorizacao"></div>
-            <button onclick="autorizarAbertura()" style="background-color: #dc3545;">Autorizar Abertura</button>
+            <form onsubmit="event.preventDefault(); autorizarAbertura();">
+                <input type="text" id="nomeAutorizacao" placeholder="Nome">
+                <input type="password" id="senhaAutorizacao" placeholder="Senha">
+                <button type="submit" style="background-color: #dc3545;">Autorizar Abertura</button>
+            </form>
         </div>
 
         <div id="secaoPreenchimento" class="nao-imprimir">
@@ -318,12 +334,14 @@
         <div id="areaCadastro" class="nao-imprimir">
             <h2>Cadastro</h2>
             <div id="mensagemCadastro"></div>
-            <input type="text" id="novoNome" placeholder="Nome Completo">
-            <input type="text" id="novoCargo" placeholder="Cargo/Função">
-            <input type="text" id="novaMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
-            <input type="text" id="novoCpf" placeholder="CPF">
-            <input type="date" id="novaDataCadastro" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
-            <button onclick="cadastrar()" style="background-color: #28a745;">Cadastrar</button>
+            <form onsubmit="event.preventDefault(); cadastrar();">
+                <input type="text" id="novoNome" placeholder="Nome Completo">
+                <input type="text" id="novoCargo" placeholder="Cargo/Função">
+                <input type="text" id="novaMatricula" placeholder="Matrícula (6 ou 8 dígitos)">
+                <input type="text" id="novoCpf" placeholder="CPF">
+                <input type="date" id="novaDataCadastro" readonly onfocus="this.blur();" onclick="this.blur();" style="background-color: #e9ecef; cursor: not-allowed;">
+                <button type="submit" style="background-color: #28a745;">Cadastrar</button>
+            </form>
         </div>
     </div>
 
@@ -348,13 +366,10 @@
         let ldlAtivas = [];
         let pessoaEncontrada = null;
         let ldlComChecklistAberto = null; 
-
-        // Variável de controle para saber se estamos editando uma LDL ativa existente
         let ldlSendoEditadaId = null; 
 
         let controladorLogado = localStorage.getItem("vli_controlador_logado") === "true";
         let dadosControladorLogado = localStorage.getItem("vli_dados_controlador") ? JSON.parse(localStorage.getItem("vli_dados_controlador")) : null;
-        
         let senhaMasterAtual = localStorage.getItem("vli_senha_master") || "2030";
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -378,6 +393,17 @@
         const dataHojeStr = obterDataLocalISO();
         document.getElementById('novaDataCadastro').value = dataHojeStr;
         document.getElementById('dataAtualLDL').value = dataHojeStr;
+
+        // Função auxiliar para fechar todas as seções antes de abrir uma nova
+        function fecharTodasSecoes() {
+            document.getElementById('secaoEdicaoCadastro').style.display = 'none';
+            document.getElementById('secaoConfirmarBloqueio').style.display = 'none';
+            document.getElementById('secaoDesbloqueio').style.display = 'none';
+            document.getElementById('secaoHistorico').style.display = 'none';
+            document.getElementById('secaoPreenchimento').style.display = 'none';
+            document.getElementById('secaoAutorizacao').style.display = 'none';
+            document.getElementById('mensagem').innerHTML = '';
+        }
 
         window.toggleSecaoConsultarLDLNav = function() {
             const secao = document.getElementById('secaoConsultarLDLNav');
@@ -776,7 +802,6 @@
             }
         };
 
-        // Função para abrir os dados preenchidos da LDL para edição
         window.abrirEdicaoLDL = function(id) {
             if (!controladorLogado) {
                 alert("Acesso negado! Faça o Login para editar a LDL.");
@@ -787,8 +812,8 @@
             if (!ldlAlvo) return;
 
             ldlSendoEditadaId = id;
+            fecharTodasSecoes();
 
-            // Ocultar a listagem de ativas e outras seções para focar na edição
             document.getElementById('secaoAtivas').style.display = 'none';
             document.getElementById('areaConsulta').style.display = 'none';
             document.getElementById('secaoPreenchimento').style.display = 'block';
@@ -796,7 +821,6 @@
             document.getElementById('btnSalvarLDL').innerText = "Salvar Alterações";
             document.getElementById('btnCancelarEdicaoLDL').style.display = "block";
 
-            // Preencher campos com os dados existentes
             document.getElementById('inputNumLDL').value = ldlAlvo.num || '';
             document.getElementById('inputControlador').value = ldlAlvo.controlador || '';
             document.getElementById('inputLocal').value = ldlAlvo.local || '';
@@ -805,7 +829,6 @@
             document.getElementById('inputHorarioAte').value = ldlAlvo.horarioAte || '';
             document.getElementById('dataAtualLDL').value = ldlAlvo.data || obterDataLocalISO();
 
-            // Restaurar perguntas prévias (perg1 a perg11)
             for (let i = 1; i <= 11; i++) {
                 const valorSalvo = ldlAlvo[`perg` + i];
                 if (valorSalvo) {
@@ -814,7 +837,6 @@
                 }
             }
 
-            // Restaurar observação
             if (ldlAlvo.observacaoLDL && ldlAlvo.observacaoLDL.trim() !== "") {
                 const radioObsSim = document.querySelector(`input[name="pergObs"][value="Sim"]`);
                 if (radioObsSim) radioObsSim.checked = true;
@@ -1033,7 +1055,6 @@
 
             msgErro.innerHTML = "";
 
-            // Se estamos editando uma LDL ativa já existente
             if (ldlSendoEditadaId) {
                 const ldlAntiga = ldlAtivas.find(l => l.id === ldlSendoEditadaId);
                 
@@ -1048,10 +1069,8 @@
                     ...respPergs
                 };
 
-                // Atualizar na coleção 'ativasVLI'
                 await updateDoc(doc(db, "ativasVLI", ldlSendoEditadaId), dadosAtualizados);
 
-                // Atualizar também no histórico do colaborador correspondente
                 bancoDeDados.forEach(async p => {
                     if (p.historico) {
                         const index = p.historico.findIndex(h => h.num === ldlAntiga.num && h.data === ldlAntiga.data && h.tipo === "Preenchimento");
@@ -1067,7 +1086,6 @@
                 return;
             }
 
-            // Fluxo normal de cadastro de nova LDL
             const jaTemLDLAtiva = ldlAtivas.some(l => {
                 const mesmaMatricula = pessoaEncontrada.matricula && l.matricula === pessoaEncontrada.matricula;
                 const mesmoCpf = pessoaEncontrada.cpf && l.cpf === pessoaEncontrada.cpf;
@@ -1346,6 +1364,7 @@
         };
 
         window.abrirEdicaoCadastro = function() {
+            fecharTodasSecoes();
             document.getElementById('secaoEdicaoCadastro').style.display = "block";
             document.getElementById('editNome').value = pessoaEncontrada.nome || '';
             document.getElementById('editCargo').value = pessoaEncontrada.cargo || '';
@@ -1389,14 +1408,13 @@
         };
 
         window.controlarBotaoBloqueio = function() {
+            fecharTodasSecoes();
             if (pessoaEncontrada.bloqueado) {
                 document.getElementById('secaoDesbloqueio').style.display = "block";
-                document.getElementById('secaoConfirmarBloqueio').style.display = "none";
                 document.getElementById('senhaDesbloqueio').value = "";
                 document.getElementById('mensagemDesbloqueio').innerHTML = "";
             } else {
                 document.getElementById('secaoConfirmarBloqueio').style.display = "block";
-                document.getElementById('secaoDesbloqueio').style.display = "none";
             }
         };
 
@@ -1428,6 +1446,7 @@
         };
 
         window.abrirLDL = function() {
+            fecharTodasSecoes();
             ldlSendoEditadaId = null;
             document.getElementById('tituloSecaoPreenchimento').innerText = "LDL";
             document.getElementById('btnSalvarLDL').innerText = "Salvar";
@@ -1503,6 +1522,7 @@
         };
 
         window.mostrarHistorico = function() {
+            fecharTodasSecoes();
             const secao = document.getElementById('secaoHistorico');
             secao.style.display = "block";
             const lista = document.getElementById('listaHistorico');
