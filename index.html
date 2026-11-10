@@ -786,7 +786,7 @@
                     return `
                         <div class="card-ldl ${estaEstourado ? 'card-ldl-estourado' : ''}" id="card-item-${l.id}">
                             ${estaEstourado ? '<div style="color: #dc3545; font-weight: bold; margin-bottom: 5px; text-align: center;">⚠️ HORÁRIO LIMITE ULTRAPASSADO! ⚠️</div>' : ''}
-                            <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - Nº ${l.num}<br>Controlador: ${l.controlador || '-'}<br>Local: ${l.local}<br>Atividade: ${l.atividade}<br>Horário: ${l.horarioDe || ''} às ${l.horarioAte || ''}<br>Data: ${l.data || ''}
+                            <strong>${l.nome}</strong> (Matrícula: ${l.matricula || '-'} / CPF: ${l.cpf || '-'}) - <strong>Nº</strong> ${l.num}<br><strong>Controlador:</strong> ${l.controlador || '-'}<br><strong>Local:</strong> ${l.local}<br><strong>Atividade:</strong> ${l.atividade}<br><strong>Horário:</strong> ${l.horarioDe || ''} às ${l.horarioAte || ''}<br><strong>Data:</strong> ${l.data || ''}
                             ${l.observacaoLDL ? `<br><strong>Observação:</strong> ${l.observacaoLDL}` : ''}
                             ${l.encerradoPor ? `<br><em>Encerrado por: ${l.encerradoPor}</em>` : ''}
                             <div id="container-btn-${l.id}" style="margin-top: 8px;">
